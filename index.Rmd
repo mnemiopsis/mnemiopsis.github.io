@@ -29,4 +29,17 @@ For our differential expression analysis click [here](StoryOfInitialAnalysis.htm
 
 To download our data click [here](downloads.html).
 
+Movies:
 
+
+Images of the embryogenesis:
+
+```{r, echo = FALSE, results = 'asis'}
+
+files <- list.files('images', pattern = 'timelapse', full.names = TRUE)
+
+for (i in files){
+  cat(paste0('<img src="', i, '" style="width:304px;height:228px;">\n\n'))
+}
+
+```
