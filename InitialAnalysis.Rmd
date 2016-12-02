@@ -3,7 +3,11 @@ title: "Mnemiopsis Extended Analysis"
 author: "Kirsten Gotting"
 output:
   html_document:
-      code_download: true
+      code_download: true      
+      toc: true
+      toc_depth: 2
+      toc_float:
+        collapsed: false
 ---
 
 ```{r setupInitial, message=FALSE, results ='hide', warning=FALSE, error = FALSE, cache = FALSE, echo = FALSE}

@@ -68,6 +68,9 @@ h6 {
 .table th:not([align]) {
   text-align: left;
 }
+#rmd-source-code {
+  display: none;
+}
 </style>
 
 <link rel="stylesheet" href="styles.css" type="text/css" />
@@ -163,6 +166,18 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: -22px; }
+.code-folding-btn.collapsed { margin-bottom: 4px; }
+</style>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<script src="site_libs/navigation-1.1/FileSaver.min.js"></script>
+<script src="site_libs/navigation-1.1/sourceembed.js"></script>
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("experiment.Rmd");
+});
+</script>
 
 
 
@@ -344,6 +359,13 @@ div.tocify {
 
 <div class="fluid-row" id="header">
 
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
+</ul>
+</div>
+
 
 
 <h1 class="title toc-ignore">The Experiment</h1>
@@ -397,9 +419,10 @@ div.tocify {
 </div>
 </div>
 
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiVGhlIEV4cGVyaW1lbnQiCmJpYmxpb2dyYXBoeTogbWV0aG9kcy5iaWJ0ZXgKb3V0cHV0OgogIGh0bWxfZG9jdW1lbnQ6CiAgICAgIGNvZGVfZG93bmxvYWQ6IHRydWUKICAgICAgdG9jOiB0cnVlCiAgICAgIHRvY19kZXB0aDogMgogICAgICB0b2NfZmxvYXQ6CiAgICAgICAgY29sbGFwc2VkOiBmYWxzZQoKLS0tCgojT3ZlcnZpZXcKCkEgdGltZSBzZXJpZXMgZnJvbSAxIGhvdXIgcG9zdCBmZXJ0aWxpemF0aW9uIHRvIDkgaG91cnMgcG9zdCBmZXJ0aWxpemF0aW9uIChocGYpIHdhcyBjb2xsZWN0ZWQgZm9yIFJOQS1zZXEgdG8gdW5kZXJzdGFuZCB0aGUgc2hpZnRzIG9jY3VyaW5nIGluIHRoZSBkZXZlbG9waW5nICpNLiBsZWlkeWkqIGVtYnJ5b25pYyB0cmFuc2NyaXB0b21lLgoKI1NhbXBsZSBDb2xsZWN0aW9uCgpUaHJlZSBiaW9sb2dpY2FsIHJlcGxpY2F0ZXMgd2VyZSBjb2xsZWN0ZWQgZm9yIHRpbWVwb2ludHMgMWhwZiwgMmhwZiwgM2hwZiwgNGhwZiwgNWhwZiwgNmhwZiwgN2hwZiwgOGhwZiwgOWhwZi4gCgoKI1JOQS1zZXEKCkxpYnJhcnkgcHJlcCBtZXRob2QgYW5kIHNlcXVlbmNpbmcgaW5mby4KCgpUcmFuc2NyaXB0b21lIGFzc2VtYmx5IHdhcyBwZXJmb3JtZWQgd2l0aCBUcmluaXR5IHVzaW5nIGFsbCBvZiB0aGUgcmVhZHMgZm9yIGFsbCBzYW1wbGVzIGFuZCByZXBsaWNhdGVzLgoKCiNBbmFseXNpcwoKQm93dGllMiB3aXRoIGRlZmF1bHQgcGFyYW1ldGVycyB3YXMgdXNlZCB0byBhbGlnbiByZWFkcyBmcm9tIGVhY2ggZGV2ZWxvcG1lbnRhbCB0aW1lcG9pbnQgdG8gdGhlIHJlZmVyZW5jZSB0cmFuc2NyaXB0b21lICBbQGxhbmdtZWFkMjAxMmZhc3RdLiBTYW10b29scyBxdWFudGlmaWVkIHRoZSBhbGlnbm1lbnRzIGZvciBlYWNoIHJlZmVyZW5jZSBzZXF1ZW5jZSBbQGxpMjAwOXNlcXVlbmNlXS4gQ291bnRzIGZvciB0cmluaXR5IGlzb2Zvcm1zIHdlcmUgc3VtbWVkIHRvIGNyZWF0ZSBhIGNvdW50ICdwZXIgZ2VuZScsIHdoaWNoIHNlcnZlZCBhcyBpbnB1dCB0byB0aGUgUiBwYWNrYWdlIERFU2VxMiBmb3IgZGlmZmVyZW50aWFsIGV4cHJlc3Npb24gYW5hbHlzaXMgYW5kIG5vcm1hbGl6YXRpb24gb2YgdGhlIHJlYWQgY291bnRzIFtAbG92ZTIwMTRtb2RlcmF0ZWRdLiBGb3IgdGhlIGRpZmZlcmVudGlhbCBleHByZXNzaW9uIGFuYWx5c2lzLCBhbGwgdGltZXBvaW50cyB3ZXJlIGNvbnRyYXN0ZWQgd2l0aCB0aGUgZWlnaHQgaG91ciB0aW1lIHBvaW50LiBHZW5lIGV4cHJlc3Npb24gZGF0YSBoYXMgYmVlbiBkZXBvc2l0ZWQgaW4gdGhlIEdlbmUgRXhwcmVzc2lvbiBPbW5pYnVzIChHRU8pIHVuZGVyIHRoZSBhY2Nlc3Npb24gW10uCgpBbGwgaGVhdG1hcHMgd2VyZSBjcmVhdGVkIHVzaW5nIHRoZSBSIHBhY2thZ2UgcGhlYXRtYXAgW0Brb2xkZTIwMTVwaGVhdG1hcF0uCgpHZW5lIE9udG9sb2d5IFtAZ2VuZTIwMTVnZW5lOyBAYXNoYnVybmVyMjAwMGdlbmVdIHRlcm1zIHdlcmUgYXNzaWduZWQgdG8gZWFjaCAqTS4gbGVpZHlpKiBnZW5lIGJhc2VkIG9uIGhvbW9sb2dvdXMgUEZBTSBkb21haW5zIGFuZCBzaWduaWZpY2FudCBTd2lzc3Byb3QgYmxhc3RwIGhpdHMgW0BtYWRkZW4yMDEzYmxhc3RdLiBUaGVzZSB0ZXJtcyB3ZXJlIHVzZWQgdG8gaW1wdXRlIGZ1bmN0aW9uYWwgY2F0ZWdvcmllcyBvZiBkaWZmZXJlbnRpYWxseSBleHByZXNzZWQgZ2VuZXMuCgoKCiMgUmVmZXJlbmNlcwoK</div>
 
 <p>
-<a href="http://stowers.org"><img src="images/Stowers-logo_001.jpg"></a> 
+<a href="http://stowers.org"><img src="images/Stowers-logo_001.jpg" style="width:100px;height:100px;"></a> 
 <a href="http://planaria.stowers.org/"><img src="http://smedgd.stowers.org/wp-content/uploads/2015/11/sllogo_whitebg_small.png"></a> 
 <a href="http://www.hhmi.org/"><img src="images/HHMI-logo-color_small.jpg"></a>
 <a href="http://www.mbl.edu/"><img src="images/marine-biological-laboratory_small.jpg"></a>
