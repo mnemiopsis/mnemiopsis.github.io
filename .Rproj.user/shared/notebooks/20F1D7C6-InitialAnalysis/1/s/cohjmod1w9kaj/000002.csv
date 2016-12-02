@@ -1,0 +1,23 @@
+"0","all_expr <- rbind(expr2, expr8)
+zeroFC <- all_expr %>% filter(dea_ID == 'log2FoldChange') %>%
+  filter(abs(dea_Value) <= 0.5) %>%
+  group_by(Gene) %>%
+  mutate(num_Contrasts = length(unique(contrastID))) %>%
+  filter(num_Contrasts == 14) %>%
+  distinct(Gene) %>% .$Gene
+housekeepers <- scan(""db/housekeepers.txt"", what = 'character')
+"
+"2","Read 1794 items
+"
+"0","rpkm_info <- rpkm %>%"
+"0","  mutate(zeroFC = ifelse(Gene %in% zeroFC, TRUE, FALSE)) %>%"
+"0","  mutate(housekeepers = ifelse(Gene %in% housekeepers, TRUE, FALSE))"
+"0","ggplot(rpkm_info, aes(x = Time, y = zscore)) +"
+"0","  geom_jitter(data = rpkm_info[which(rpkm_info$zeroFC == FALSE), ], colour = 'lightgrey', alpha = 0.3) + "
+"0","  geom_jitter(data = rpkm_info[which(rpkm_info$zeroFC == TRUE), ], colour = 'red', alpha = 0.3) +"
+"0","  geom_jitter(data = rpkm_info[which(rpkm_info$housekeepers == TRUE), ], colour = 'blue', alpha = 0.3) +"
+"0","  geom_boxplot(colour = 'blue', alpha = 0) + "
+"0","  theme_minimal() + "
+"0","  ggtitle('zscore(Mean RPKM) per gene across the timepoints')"
+"2","
+"

@@ -37,11 +37,11 @@ loaded via a namespace (and not attached):
 [22] splines_3.3.1        BiocParallel_1.6.6   geneplotter_1.50.0  
 [25] stringr_1.1.0        foreign_0.8-67       RCurl_1.96-0        
 [28] munsell_0.4.3        base64enc_0.1-3      htmltools_0.3.5     
-[31] nnet_7.3-12          htmlTable_1.7        Hmisc_4.0-0         
-[34] XML_3.98-1.4         bitops_1.0-6         xtable_1.8-2        
-[37] gtable_0.2.0         DBI_0.5-1            magrittr_1.5        
-[40] scales_0.4.1         KernSmooth_2.23-15   stringi_1.1.2       
-[43] XVector_0.12.1       genefilter_1.54.2    latticeExtra_0.6-28 
-[46] Formula_1.2-1        tools_3.3.1          survival_2.40-1     
-[49] yaml_2.1.14          AnnotationDbi_1.36.0 colorspace_1.3-1    
-[52] cluster_2.0.5        caTools_1.17.1      
+[31] nnet_7.3-12          htmlTable_1.7        codetools_0.2-15    
+[34] Hmisc_4.0-0          XML_3.98-1.4         bitops_1.0-6        
+[37] xtable_1.8-2         gtable_0.2.0         DBI_0.5-1           
+[40] magrittr_1.5         scales_0.4.1         KernSmooth_2.23-15  
+[43] stringi_1.1.2        XVector_0.12.1       genefilter_1.54.2   
+[46] latticeExtra_0.6-28  Formula_1.2-1        tools_3.3.1         
+[49] survival_2.40-1      yaml_2.1.14          AnnotationDbi_1.36.0
+[52] colorspace_1.3-1     cluster_2.0.5        caTools_1.17.1      
