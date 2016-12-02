@@ -1,0 +1,784 @@
+---
+title: "Mnemiopsis Extended Analysis"
+author: "Kirsten Gotting"
+output:
+  html_document:
+      code_download: true
+---
+
+```{r setup, message=FALSE, results ='hide', warning=FALSE, error = FALSE, cache = FALSE, echo = FALSE}
+
+library(knitr)
+opts_chunk$set(echo = FALSE, message=FALSE, results = 'hide', fig.keep="all", warning=FALSE, error=FALSE, fig.path="./summary_figures/", cache = TRUE)
+opts_knit$set(root.dir = "./")
+
+library('kiRsten')
+library('tidyverse')
+library('ggplot2')
+library('GO.db')
+library('wesanderson')
+library('pheatmap')
+library('htmlwidgets')
+library('DT')
+library('RColorBrewer')
+
+my_pallete <- c(wes_palettes$Rushmore[-2], wes_palettes$FantasticFox)
+
+setwd("~/projects/Mnemiopsis/website")
+
+```
+
+#Overview
+
+For these analyses I want to see how much overlap there is between the two sets of significant genes between the 2hpf reference timepoint and the 8hpf reference timepoint. 
+
+#Data Used
+
+1. The significant genes list from the 2hpf reference quality control differential expression experiment.
+2. The significant genes list from the 8hpf reference quality control differential expression experiment.
+
+
+
+```{r fixAnnot, eval = FALSE, echo = FALSE}
+
+pfam2go    <- data.table::fread("~/projects/Mnemiopsis/annotation/pfam2go", head= FALSE, data.table = FALSE)
+pfam2go$V1 <- gsub('Pfam:', '', gsub(" >.*", "", pfam2go$V1))
+
+pfam2go <- pfam2go %>% separate(V1, into = c('Pfam', 'pfamDesc'), sep = " ") %>% dplyr::rename('go_id' = V2)
+
+ml2pfam  <- data.table::fread('~/projects/Mnemiopsis/annotation/mleidyi2pfam.txt', header = TRUE, data.table = FALSE)
+ml2pfam$Pfam <- gsub("\\..*", '', ml2pfam$Pfam)
+
+ml2sp  <- data.table::fread('~/projects/Mnemiopsis/annotation/ml_v_sp_20160526.annot', header = TRUE, data.table = FALSE)
+ml2sp  <- ml2sp %>% dplyr::rename('Gene' = id)
+
+uniprot2go <- data.table::fread("~/projects/Mnemiopsis/annotation/uniprot2go.txt", header = FALSE, data.table = FALSE, col.names = c('sp_id', 'go_id'))
+uni2go     <- uniprot2go %>% filter(sp_id %in% ml2sp$sp_id)
+
+
+
+ml_annot1 <- inner_join(ml2pfam, pfam2go) %>%
+  group_by(Gene) %>%
+  mutate(Pfam = paste(Pfam, collapse = ";")) %>%
+  mutate(go_id = paste(go_id, collapse = ';')) %>%
+  ungroup() %>%
+  dplyr::select(-pfamDesc) %>%
+  distinct()
+
+
+ml_annot2 <- left_join(ml2sp, uni2go)
+
+
+
+ml1 <- left_join(ml_annot2, ml_annot1, by = 'Gene') %>%
+  unite(go_all, go_id.x, go_id.y, sep = ";") %>%
+  mutate(go_all = sub('^;', '', sub(";NA", "", go_all))) 
+
+
+
+write.table(ml1, 'output/Mle_annot20160901.txt', quote = FALSE, sep = "\t", row.names = FALSE)
+
+```
+
+
+
+```{r readdata2}
+
+ml_annot <- data.table::fread('output/Mle_annot20160901.txt', data.table = FALSE)
+
+ml <- ml_annot %>%
+  unnest(go_id = strsplit(go_all, split = ";")) %>%
+  dplyr::select(-go_all) %>%
+  distinct()
+
+
+rpkms <- data.table::fread('output/rpkm.txt', data.table = FALSE)
+
+rpkm <- rpkms %>%
+  gather(Sample, RPKM, -ID, -transcript_length)  %>%
+  dplyr::rename('Gene' = ID) %>% 
+  separate(Sample, c('Time', 'Year', 'Replicate'), sep = '_') %>%
+  group_by(Time, Gene) %>%
+  mutate(meanRPKM = mean(RPKM)) %>%
+  ungroup() %>%
+  dplyr::select(-RPKM, -Year, -Replicate) %>% distinct() %>%
+  group_by(Gene) %>%
+  mutate(zscore = as.vector(scale(meanRPKM))) %>%
+  ungroup() %>%
+  filter(!is.na(zscore))
+
+
+
+expr <- data.table::fread('output/all_genes_expressionTidy8hpa.txt', data.table = FALSE)
+expr8 <- na.omit(expr)
+
+
+
+
+sig <- expr8  %>% 
+  mutate(id1 = ifelse(dea_ID == 'padj' & dea_Value <= 1e-5, yes = TRUE, no = FALSE)) %>%
+  mutate(id2 = ifelse(dea_ID == 'log2FoldChange' & dea_Value >= 0.5, yes = TRUE, no = FALSE)) %>%
+  group_by(contrastID, Gene) %>%
+  filter(any(id1), any(id2)) %>%
+  ungroup() %>%
+  distinct(Gene) %>% .$Gene
+
+
+sign8 <- expr8 %>% filter(Gene %in% sig)
+
+write(unique(sign8$Gene), file = 'output/significant_8hr.txt')
+
+expr <- data.table::fread('output/all_genes_expressionTidy2hpa.txt', data.table = FALSE)
+expr2 <- na.omit(expr)
+
+
+sig <- expr2  %>% 
+  mutate(id1 = ifelse(dea_ID == 'padj' & dea_Value <= 1e-5, yes = TRUE, no = FALSE)) %>%
+  mutate(id2 = ifelse(dea_ID == 'log2FoldChange' & dea_Value >= 0.5, yes = TRUE, no = FALSE)) %>%
+  group_by(contrastID, Gene) %>%
+  filter(any(id1), any(id2)) %>%
+  ungroup() %>%
+  distinct(Gene) %>% .$Gene
+
+
+sign2 <- expr2 %>% filter(Gene %in% sig)
+
+write(unique(sign2$Gene), file = 'output/significant_2hr.txt')
+
+all_sign <- unique(c(sign2$Gene, sign8$Gene))
+
+```
+
+
+
+# Clustering Significant Genes
+
+For the following heatmap I took the significant genes for the 2hpf and 8hpf control experiments and hierarchically clustered all of the timepoints for each reference control together. 
+
+In Heatmap A, I highlight the first four time points (1hpf - 4hpf) with the 8hpf control and the second four timepoints (5hpf - 8hpf) with the 2hpf control. In doing this we see the presence and then gradual decrease at 5hpf in the Cluster D genes, while all other clusters contain lowly expressed genes that shift to increasingly higher levels of expression at the 5hpf timepoint.
+
+
+```{r clusterAllheat, fig.keep='all'}
+
+mlhere <- ml %>% dplyr::select(Gene, sp_desc) %>% distinct()
+
+lfc <- data.frame(sign2 %>% filter(dea_ID == 'log2FoldChange') %>% dplyr::select(-dea_ID) %>% spread(contrastID, dea_Value), check.names = FALSE)
+lfc2 <- left_join(lfc, mlhere)
+
+lfc <- data.frame(sign8 %>% filter(dea_ID == 'log2FoldChange') %>% dplyr::select(-dea_ID) %>% spread(contrastID, dea_Value), check.names = FALSE)
+lfc8 <- left_join(lfc, mlhere)
+
+
+sigExpr <- bind_rows(expr2, expr8) %>% 
+  filter(Gene %in% all_sign, dea_ID == 'log2FoldChange') %>%
+  dplyr::select(-dea_ID) %>%
+  spread(contrastID, dea_Value)
+
+
+
+lfc <- left_join(sigExpr, mlhere)
+
+lfc <- na.omit(lfc[ ,c("Gene", "1hpf/8hpf", "2hpf/8hpf", "3hpf/8hpf", "4hpf/8hpf", "5hpf/8hpf", "6hpf/8hpf", "7hpf/8hpf", "1hpf/2hpf", "3hpf/2hpf", "4hpf/2hpf", "5hpf/2hpf", "6hpf/2hpf", "7hpf/2hpf", "8hpf/2hpf")])
+
+rownames(lfc)      <- lfc$Gene
+lfc$sp_desc        <- NULL
+lfc$Gene           <- NULL
+
+
+
+lfc_heat <- make_pheatmap_df(lfc, max = 3, min = -3)
+
+
+hr  <- hclust(dist(lfc), method = 'complete')
+
+
+mycl            <- cutree(hr, k = 2)
+cluster.letters <- LETTERS[seq(from = 1, to = 2)]
+clusters        <- c('Late Stage', 'Early Stage')
+mycols          <- clusters[as.vector(mycl)]
+names(mycols)   <- names(mycl)
+
+annotation              <- data.frame(Cluster = mycols)
+annotation$Significant <- 'None' 
+
+
+
+
+annotation[which(rownames(annotation) %in% lfc2$Gene), 'Significant'] <- '2hpf Control'
+annotation[which(rownames(annotation) %in% lfc8$Gene), 'Significant'] <- '8hpf Control'
+
+
+
+annotation$Cluster    <- as.factor(annotation$Cluster)
+annotation$Significant <- as.factor(annotation$Significant)
+up.colors            <- c('green', 'purple')
+names(up.colors)     <- clusters
+Significant           <- c('pink', 'turquoise')
+names(Significant)    <- c('8hpf Control', '2hpf Control')
+ann.colors             <- list(Cluster = up.colors, Significant = Significant)
+
+
+annot_column1 <- data.frame(row.names = colnames(lfc_heat),
+                           Reference = as.factor(sapply(colnames(lfc_heat), function(x){strsplit(x, "/")[[1]][2]})))
+
+
+
+
+keep_cols <- c("1hpf/8hpf", "2hpf/8hpf", "3hpf/8hpf", "4hpf/8hpf","5hpf/2hpf", "6hpf/2hpf", "7hpf/2hpf", "8hpf/2hpf")
+
+
+exp <- c('rosybrown3', 'cornflowerblue')
+names(exp) <- c('8hpf', '2hpf')
+ann.colors$Reference <- exp
+annot_column <- data.frame(row.names = keep_cols,
+                           Reference = as.factor(sapply(keep_cols, function(x){strsplit(x, "/")[[1]][2]})))
+ 
+
+annotationDF <- data.frame(annotation, Gene = rownames(annotation))
+annotationDF <- left_join(annotationDF, mlhere)
+
+
+
+pheatmap(lfc_heat[ ,keep_cols], show_rownames = FALSE, cluster_cols = FALSE, cluster_rows = hr, main = paste0('Heatmap A: Clustering of the log2 Fold Changes of ', nrow(lfc), ' Genes'), border_color = NA, annotation_row=annotation, annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE, gaps_col = c(4), labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"))
+
+
+```
+
+
+#RPKM Clustering
+
+Heatmap B shows the clusters that are created from clustering purely from the zscore of the mean RPKM of significant genes from both the 8hr control and the 2hr reference experiments.
+
+I think this is a pretty good proof a principle that the scaled and centered RPKMs are able to recapitulate similar clusters that contain the same gene lists to the clusters created from the differential expression data for the significant genes, with some minor differences in the order of the genes.
+
+
+
+```{r RPKMplotClusters}
+rpkm_sig <- na.omit(data.frame(rpkm %>% filter(Gene %in% rownames(lfc_heat)) %>%
+  dplyr::select(Gene, Time, zscore) %>%
+  spread(Time, zscore), stringsAsFactors = FALSE, check.names = FALSE))
+
+
+rownames(rpkm_sig) <- rpkm_sig$Gene
+rpkm_sig$Gene      <- NULL
+
+rpkm_sig_heat <- make_pheatmap_df(rpkm_sig, max = 2, min = -2)
+
+
+hr  <- hclust(dist(rpkm_sig), method = 'complete')
+
+
+mycl            <- cutree(hr, k = 2)
+cluster.letters <- LETTERS[seq(from = 1, to = 2)]
+clusters        <- c('Late Stage', 'Early Stage')
+mycols          <- clusters[as.vector(mycl)]
+names(mycols)   <- names(mycl)
+
+annotation_rpkm           <- data.frame(Cluster=mycols)
+annotation_rpkm$Cluster   <- as.factor(annotation_rpkm$Cluster)
+up.colors            <- c('green', 'purple')
+names(up.colors)     <- clusters
+ann.cols             <- list(Cluster = up.colors)
+
+
+
+pheatmap(rpkm_sig_heat, show_rownames = FALSE, cluster_cols = FALSE, cluster_rows = hr, main = paste0('Heatmap B: Clustering of the zscore of the RPKM of ', nrow(rpkm_sig), ' Genes'), border_color = NA, annotation_row=annotation_rpkm, annotation_colors = ann.cols, color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100))
+
+```
+
+
+```{r rpkmViolin, eval = FALSE}
+
+all_expr <- rbind(expr2, expr8)
+
+zeroFC <- all_expr %>% filter(dea_ID == 'log2FoldChange') %>%
+  filter(abs(dea_Value) <= 0.5) %>%
+  group_by(Gene) %>%
+  mutate(num_Contrasts = length(unique(contrastID))) %>%
+  filter(num_Contrasts == 14) %>%
+  distinct(Gene) %>% .$Gene
+
+housekeepers <- scan("db/housekeepers.txt", what = 'character')
+
+
+rpkm_info <- rpkm %>%
+  mutate(zeroFC = ifelse(Gene %in% zeroFC, TRUE, FALSE)) %>%
+  mutate(housekeepers = ifelse(Gene %in% housekeepers, TRUE, FALSE)) %>% 
+  mutate(logRPKM = log(meanRPKM)) %>%
+  mutate(significant2 = ifelse(Gene %in% sign2$Gene, '2hpf', FALSE)) %>%
+  mutate(significant8 = ifelse(Gene %in% sign8$Gene, '8hpf', FALSE)) %>%
+  gather(Observation, Reference, -Gene, -transcript_length, -Time, -meanRPKM, -zscore, -zeroFC, -housekeepers, -logRPKM)
+
+
+ggplot(rpkm_info, aes(x = Time, y = logRPKM)) +
+   geom_jitter(aes(colour = Reference), alpha = 0.3) +
+   scale_colour_manual(values = c("purple","green"), limits = c('2hpf', '8hpf')) +
+   geom_violin(alpha = 0) +
+   theme_minimal() +
+   guides(colour = guide_legend(override.aes = list(alpha = 1))) +
+   labs(
+     title = 'Abundance of all Genes per Time Point',
+     y = 'Log10 of the Mean RPKM',
+     subtitle = "Genes significant to the 2hpf and 8hpf reference highlighted in purple and green."
+  )
+     
+```
+
+
+# Significant Gene PCA
+
+Here I did a PCA analysis on the mean RPKM per sample for the significant genes in the heatmaps above. We see that PC2 holds the variance that separates the 'early' transcripts from the 'late' transcripts. PC1 did not provide differentiation between the timepoints and may reflect technical variation.
+
+```{r}
+
+#rpkm of significant genes PCA
+
+rpkm_spread <- data.frame(rpkm %>% dplyr::select(-zscore, -transcript_length) %>%
+                            spread(Time, meanRPKM), check.names = FALSE)
+
+rownames(rpkm_spread) <- rpkm_spread$Gene
+rpkm_spread$Gene      <- NULL
+
+princomp <- prcomp(rpkm_spread)
+
+rot <- data.frame(princomp$rotation)
+
+rot$Sample <- rownames(rot)
+rot$Stage  <- c(rep('Early', 5), rep('Late', 4))
+
+ggplot(data = rot, aes(x = PC2, y = PC3, label = Sample, colour = Stage)) +
+          geom_point(size = 1) + theme_minimal() + geom_text(hjust = 0, vjust = 0, size = 3) +
+          ggtitle('All Samples PCA of Mean RPKM of Significant Genes') + scale_x_continuous(expand = c(0.2, 0))
+
+```
+
+
+#Cluster Trends
+
+The following is a plot of the trends for each of the clusters in Heatmap A, with the 95% confidence interval on the error bars for both the mean z-score and the mean RPKM.
+
+```{r zscore}
+
+## find the mean RPKM for timepoint for each cluster
+
+ 
+rpkm_sub <- left_join(annotationDF, rpkm) %>%
+  dplyr::select(Cluster, Time, zscore, meanRPKM) %>%
+  group_by(Cluster, Time) %>%
+  mutate(meanRPKMtot = mean(meanRPKM)) %>%
+  mutate(meanZscore = mean(zscore)) %>%
+  mutate(zscore_error = (1.9645*se(zscore))) %>% 
+  mutate(rpkm_error = (1.9645*se(meanRPKM))) %>% 
+  dplyr::select(-zscore) %>%
+  ungroup() %>%
+  dplyr::select(Cluster, Time, meanZscore, zscore_error) %>%
+  mutate(ymin = meanZscore - zscore_error) %>%
+  mutate(ymax = meanZscore + zscore_error) %>%
+  distinct()
+
+
+
+
+ggplot(rpkm_sub, aes(y = meanZscore, x = Time, group = 1)) + 
+      geom_line() + 
+      theme_minimal() +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = -90)
+            ) + facet_grid(. ~ Cluster) +
+      geom_hline(yintercept = 0, alpha = 0.3, size = 0.1) +
+      geom_errorbar(aes(ymax = ymax, ymin = ymin), width = 0.1, colour = "red") +
+      ylab('Mean z-score') +
+      scale_y_continuous(limits = c(-3, 3), breaks = seq(-3, 3)) + ggtitle('Mean Zscore of Significant Genes Per Cluster')
+
+
+
+
+rpkm_sub_rpkm <- left_join(annotationDF, rpkm) %>%
+  dplyr::select(Cluster, Time, zscore, meanRPKM) %>%
+  group_by(Cluster, Time) %>%
+  mutate(meanRPKMtot = mean(meanRPKM)) %>%
+  mutate(rpkm_error = (1.9645*se(meanRPKM))) %>% 
+  dplyr::select(-zscore, -meanRPKM) %>%
+  ungroup() %>%
+  dplyr::select(Cluster, Time, meanRPKMtot, rpkm_error) %>%
+  mutate(ymin = meanRPKMtot - rpkm_error) %>%
+  mutate(ymax = meanRPKMtot + rpkm_error) %>%
+  distinct()
+
+
+ggplot(rpkm_sub_rpkm, aes(y = meanRPKMtot, x = Time)) + 
+      geom_bar(stat = 'identity') + 
+      theme_minimal() +
+      theme(panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            axis.text.x = element_text(angle = -90)
+            ) + facet_grid(. ~ Cluster) +
+      geom_hline(yintercept = 0, alpha = 0.3, size = 0.1) +
+      geom_errorbar(aes(ymax = ymax, ymin = ymin), width = 0.1, colour = "red") +
+      ylab('Mean RPKM') + ggtitle('Mean RPKM of Significant Genes Per Cluster')
+
+```
+
+## Table of Cluster Genes
+
+
+```{r}
+
+
+bar_string <- "type: 'bar', barColor: 'red', negBarColor: 'blue', highlightColor: 'black'"
+
+cb_bar = JS(paste0("function (oSettings, json) { $('.spark:not(:has(canvas))').sparkline('html', { ", 
+    bar_string, " }); }"), collapse = "")
+
+
+line_string <- "type: 'line', lineColor: 'black', fillColor: '', highlightLineColor: 'red', highlightSpotColor: 'red'"
+
+cb_line = JS(paste0("function (oSettings, json) { $('.spark:not(:has(canvas))').sparkline('html', { ", 
+    line_string, ", chartRangeMin: ", -3, ", chartRangeMax: ", 3, " }); }"), 
+    collapse = "")
+
+cd <- list(list(targets = 2, render = JS("function(data, type, full){ return '<span class=sparkSamples>' + data + '</span>' }")), 
+    list(targets = 1, render = JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")))
+
+cb = JS(paste0("function (oSettings, json) {\n  $('.sparkSeries:not(:has(canvas))').sparkline('html', { ", 
+    line_string, " });\n  $('.sparkSamples:not(:has(canvas))').sparkline('html', { ", 
+    bar_string, " });\n}"), collapse = "")
+
+
+
+rpkm_sub <- left_join(annotationDF, rpkm) %>%
+  group_by(Cluster, Gene) %>%
+  mutate(zscore = paste(round(zscore, digits = 2), collapse = ",")) %>%
+  mutate(meanRPKM = paste(round(meanRPKM, digits = 2), collapse = ",")) %>%
+  ungroup() %>%
+  dplyr::select(Gene, Cluster, transcript_length, zscore, meanRPKM, sp_desc) %>%
+  distinct()
+
+
+bar_string <- "type: 'bar', barColor: 'red', negBarColor: 'blue', highlightColor: 'black'"
+
+cb_bar = JS(paste0("function (oSettings, json) { $('.spark:not(:has(canvas))').sparkline('html', { ", 
+    bar_string, " }); }"), collapse = "")
+
+
+line_string <- "type: 'line', lineColor: 'black', fillColor: '', highlightLineColor: 'red', highlightSpotColor: 'red'"
+
+cb_line = JS(paste0("function (oSettings, json) { $('.spark:not(:has(canvas))').sparkline('html', { ", 
+    line_string, ", chartRangeMin: ", -3, ", chartRangeMax: ", 3, " }); }"), 
+    collapse = "")
+
+cd <- list(list(targets = 4, render = JS("function(data, type, full){ return '<span class=sparkSamples>' + data + '</span>' }")), 
+    list(targets = 3, render = JS("function(data, type, full){ return '<span class=sparkSeries>' + data + '</span>' }")))
+
+cb = JS(paste0("function (oSettings, json) {\n  $('.sparkSeries:not(:has(canvas))').sparkline('html', { ", 
+    line_string, " });\n  $('.sparkSamples:not(:has(canvas))').sparkline('html', { ", 
+    bar_string, " });\n}"), collapse = "")
+
+columnDefs = list(list(className = 'dt-center', targets = 4))
+
+d5 <- datatable(rpkm_sub, rownames = FALSE, extensions = c('Buttons','Scroller', 'ColReorder'), options = list(
+    autoWidth = TRUE,
+    columnDefs = cd,
+    fnDrawCallback = cb,
+    dom = 'frtBip',
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+    deferRender = TRUE,
+    scrollY = 800,
+    colReorder = TRUE,
+    scroller = TRUE), caption = 'Table 1: All Genes in associated clusters')
+d5$dependencies <- append(d5$dependencies, htmlwidgets:::getDependency("sparkline"))
+
+
+```
+
+```{r, results='asis', cache = FALSE}
+d5
+
+cat('<br><br><br>')
+```
+
+
+
+# GO Term Plots
+
+## Transcription Factor heatmap
+
+The following heatmap shows all significantly differentially expressed genes that are annotated to GO term 'GO0006355': regulation of transcription, DNA-templated.
+
+'Differentially Expressed' defined as having a p-value less than or equal to 1e-5 and log2Fold Change greater than 0.5 at any time point.
+
+```{r tfheatmap, fig.height=12, fig.width=11}
+
+
+sign <- bind_rows(expr8, expr2) %>% left_join(annotationDF, ., by = 'Gene') %>%
+  left_join(., ml, by = c("Gene", "sp_desc")) %>%
+  filter(dea_ID == 'log2FoldChange') %>%
+  spread(contrastID, dea_Value) %>%
+  dplyr::rename('associated' = go_id) %>% .$Gene
+
+
+
+
+signtf <- bind_rows(expr8, expr2) %>% filter(Gene %in% sign)
+
+
+tf_factor <- filter(ml_annot, grepl('GO:0006355', go_all)) %>%
+  unite(col = ID, Gene, sp_desc, sep = ": ", remove = FALSE) %>%
+  distinct()
+
+lfc <- signtf %>% filter(dea_ID == 'log2FoldChange') %>%
+  dplyr::select(-dea_ID) %>%
+  spread(contrastID, dea_Value) %>%
+  distinct()
+
+tflfc <- inner_join(tf_factor, lfc) %>% dplyr::select(-sp_id, -sp_desc, -sp_evalue, -go_all, -Pfam)
+
+
+
+
+tfl <- data.frame(tflfc %>% dplyr::select(-Gene), check.names = FALSE)
+
+rownames(tfl) <- tfl$ID
+tfl$ID <- NULL
+
+tfl_heat <- make_pheatmap_df(tfl, min = -2, max = 2)
+
+
+
+#pheatmap(tfl_heat, cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(tfl), main = paste0('Clustering of ', nrow(tfl), ' Genes'), border_color = NA, cellwidth = 15, cellheight = 10)
+
+
+annotation_sub <- left_join(tflfc, annotationDF, by = 'Gene') %>% dplyr::select(Cluster, ID)
+rownames(annotation_sub) <- annotation_sub$ID
+annotation_sub$ID <- NULL
+  
+pheatmap(tfl_heat[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(tfl), 
+           main = paste0('Clustering of ', nrow(tfl), ' Genes'), border_color = NA, cellwidth = 15, cellheight = 10, 
+           annotation_row = annotation_sub, gaps_col = c(4),
+           labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"), 
+           annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE,
+           legend_labels = c(seq(-3, 3), "title\n"))
+
+
+```
+
+
+## Differentially Expressed Genes
+
+The following are heatmaps for differentially expressed genes annotated to the following GO terms:
+
+
+<font color="DarkGray"> Table 2: Descriptor GO terms with link to the Gene Ontology page associated.</font>
+
+
+GO ID | Description | Gene Ontology Link |
+------|--------------------------------------|-----------|
+GO0007049    |       Cell Cycle|http://amigo.geneontology.org/amigo/term/GO:0007049
+GO0048729 |Tissue Morphogenesis|http://amigo.geneontology.org/amigo/term/GO:0048729
+GO0030154 |Cell Differentiation|http://amigo.geneontology.org/amigo/term/GO:0030154
+GO0007276  |  Gamete Generation|http://amigo.geneontology.org/amigo/term/GO:0007276
+GO0007498 |Mesoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007498
+GO0007492 |Endoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007492
+GO0007398 |Ectoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007398
+
+
+
+'Differentially Expressed' defined as having a p-value less than or equal to 1e-5 and log2Fold Change greater than 0.5 at any time point. GO terms that do not have heatmaps have less than five genes annotated.
+
+```{r DEHeatmaps, fig.keep="all", result='asis'}
+
+
+simpleCap <- function(x) {
+    s <- strsplit(x, " ")[[1]]
+    paste(toupper(substring(s, 1, 1)), substring(s, 2),
+          sep = "", collapse = " ")
+}
+
+GOs   <- c('GO:0007049', 'GO:0030154', 'GO:0007276', 'GO:0007498', 'GO:0007492', 'GO:0007398', 'GO:0048729')
+
+
+
+
+## attach the child term to the data frame of parent terms
+
+xx           <- as.list(GOBPANCESTOR)
+allAncestor <- xx[GOs]
+x           <- as.list(GOBPOFFSPRING)
+allOffspring <- x[GOs]
+
+allAnc <- bind_rows(lapply(GOs, function(x){
+  data.frame(go_id = x, associated = unlist(allAncestor[x]), stringsAsFactors = FALSE)
+})) %>% filter(associated != 'all')
+
+allOff <- bind_rows(lapply(GOs, function(x){
+  data.frame(go_id = x, associated = unlist(allOffspring[x]), stringsAsFactors = FALSE)
+}))
+
+xxx <- rbind(allAnc, allOff)
+
+## start here
+
+all_associated <- rbind(data.frame(go_id = GOs, associated = GOs, id = 'original', stringsAsFactors = FALSE), 
+                        data.frame(xxx, id = 'derived', stringsAsFactors = FALSE)) %>%
+  filter(associated != 'all')
+
+
+all_associated$Term <- sapply(all_associated$go_id, function(x){simpleCap(Term(GOTERM[[x]]))})
+
+
+sign <- bind_rows(expr8, expr2) %>% left_join(annotationDF, ., by = 'Gene') %>%
+  left_join(., ml, by = c("Gene", "sp_desc")) %>%
+  filter(dea_ID == 'log2FoldChange') %>%
+  spread(contrastID, dea_Value) %>%
+  dplyr::rename('associated' = go_id)
+
+dea_go1 <- inner_join(sign, all_associated, by = 'associated') %>%
+  unite(ID, Gene, sp_desc, sep = ': ', remove = FALSE) %>%
+  dplyr::select(-associated, -id) %>%
+  distinct()
+
+dea_go <- dea_go1 %>% dplyr::select(-sp_id, -sp_evalue, -Pfam, -dea_ID, -Significant, -Cluster, -sp_desc)
+
+
+```
+
+```{r}
+heatmaps <- lapply(GOs, function(x){
+    df_sub1 <- dea_go[which(dea_go$go_id == x), ] %>%
+      distinct()
+    title <- paste0('Genes (N=', nrow(df_sub1), ')')
+    df_sub <- data.frame(dplyr::select(df_sub1, -Term), check.names = FALSE, stringsAsFactors = FALSE)
+  if(nrow(df_sub) > 1){
+    rownames(df_sub) <- df_sub$ID
+    df_sub$ID        <- NULL
+    df_sub_heat      <- make_pheatmap_df(df_sub, min = -2, max = 2)
+    #heatmap <- pheatmap(df_sub_heat, cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(df_sub),
+           #main = title, border_color = NA, cellwidth = 15, cellheight = 10, silent = TRUE)
+    list(catname = unique(df_sub1$Term), df = df_sub, title = title)
+  }
+})
+
+heatmaps <- heatmaps[which(sapply(heatmaps, function(x){!is.null(x)}))]
+
+```
+
+###Heatmaps {.tabset}
+```{r, fig.keep='all', results='asis', fig.height=6, fig.width=10, fig.show = 'asis'}
+
+
+for(x in heatmaps){
+  cat( "\n\n####", x[[1]], "\n\n")
+  df_new     <- data.frame(x[[2]] %>% dplyr::select(-go_id, -Gene), check.names = FALSE)
+  df_join     <- data.frame(x[[2]] %>% dplyr::select(Gene), check.names = FALSE)
+  df         <- make_pheatmap_df(df_new[ ,c("1hpf/8hpf", "2hpf/8hpf", "3hpf/8hpf", "4hpf/8hpf", "5hpf/8hpf", "6hpf/8hpf", "7hpf/8hpf", "1hpf/2hpf", "3hpf/2hpf", "4hpf/2hpf", "5hpf/2hpf", "6hpf/2hpf", "7hpf/2hpf", "8hpf/2hpf")])
+  annotation_sub <- left_join(df_join, annotationDF, by = 'Gene') %>% unite(ID, Gene, sp_desc, sep = ': ') %>% dplyr::select(-Significant)
+  rownames(annotation_sub) <- annotation_sub$ID
+  annotation_sub$ID <- NULL
+  if(nrow(df) > 25){
+      h <- nrow(df)*10.3
+      filename <- paste0('summary_figures/', gsub(" ", "", x[[1]]), 'significantlyExpressedHeatmap.png')
+      pheatmap(df[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(df_new), 
+               main = x[[3]], border_color = NA, cellwidth = 15, cellheight = 10, 
+               annotation_row = annotation_sub, gaps_col = c(4),
+               labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"),
+               annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE, filename = filename)
+      cat(paste0("#####[Link to ", x[[1]]," Heatmap](http://bioinfo/home/klg/projects/Mnemiopsis/website/", filename, ")<br><br><br>"))
+    } else {
+  pheatmap(df[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(df_new), 
+           main = x[[3]], border_color = NA, cellwidth = 15, cellheight = 10, 
+           annotation_row = annotation_sub, gaps_col = c(4),
+           labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"), 
+           annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE,
+           legend_labels = c(seq(-3, 3), "title\n"))
+    }
+  }
+
+
+
+```
+
+
+### Bar Plot
+The following bar plot shows the number of significantly differenctially expressed genes annotated to each of the GO terms in Table 2.
+
+```{r DEgenesBarPlot}
+
+dea_num <- dea_go %>% group_by(Term) %>%
+  mutate(num_rep = length(unique(ID))) %>%
+  ungroup() %>%
+  filter(num_rep > 1)
+
+gene_bar <- dea_num %>%
+  dplyr::select(Term, num_rep) %>%
+  distinct()
+
+
+gene_bar$Term <- factor(gene_bar$Term, levels = rev(c("Cell Cycle", "Cell Differentiation", "Tissue Morphogenesis", "Gamete Generation", "Mesoderm Development", 'Endoderm Development', 'Ectoderm Development')))
+
+ggplot(gene_bar, aes(x = Term, y = num_rep)) + geom_bar(stat="identity", fill = 'purple') + 
+  coord_flip() + theme_bw() + 
+  ylab("Number of Genes") + xlab("Gene Ontology Ancestral Term") + ggtitle("Ancestral GO terms of Significantly Up Genes") +
+  theme(axis.title.y = element_text(vjust = 1), axis.title.x = element_text(vjust = 0.01))
+
+```
+
+```{r, results='asis'}
+
+DT::datatable(dplyr::select(dea_go1, ID, Term),
+               caption = 'Table 3: Mnemiopsis Genes Annotated to the GO terms in Table 2.')
+
+
+cat('<br><br><br>')
+```
+
+
+# GO Term Enrichment
+
+The following figure shows the significantly enriched GO terms that had at least 5 genes annotated, and a Benjamini-Hochberg adjusted p-value less than or equal to 0.05 for both the Early and Late stage genes. 
+
+```{r, fig.width=8.5, fig.height=8.5, results = 'asis'}
+table2  <- data.table::fread('output/2hpf_all_go_enrichment.xls', data.table = FALSE)
+table2$EnrichID <- 'Late Stage'
+
+table8  <- data.table::fread('output/8hpf_all_go_enrichment.xls', data.table = FALSE)
+table8$EnrichID <- 'Early Stage'
+
+
+table <- bind_rows(table2, table8)
+
+table$Branch_Num_Genes <- ifelse(is.na(table$Branch_Num_Genes), 0, table$Branch_Num_Genes)
+
+table <- table %>% group_by(go_id) %>%
+  mutate(Num_Genes = (Num_Leaf_Genes + Branch_Num_Genes)) %>%
+  ungroup() %>%
+  dplyr::select(go_id, Term, Ontol, BH.correction, Num_Genes, EnrichID) %>%
+  filter(Num_Genes > 4) %>%
+  mutate(pval = paste0('p <= ', signif(BH.correction, digits = 3)))
+
+
+
+
+table$Term <- factor(table$Term, levels = table[order(table$Num_Genes, decreasing = FALSE), ]$Term)
+
+
+
+ggplot(table, aes(y = Num_Genes, x = Term, fill = EnrichID)) + geom_bar(stat = 'identity') + coord_flip() +
+  theme_minimal() + xlab('GO Term') + ylab('Number of Genes') + ggtitle('Enriched GO Terms by Stage') + 
+  geom_text(aes(y = Num_Genes + 25, x = Term, label = pval), size = 2.5) +
+  scale_y_continuous(expand = c(0.12,0)) + 
+  theme(axis.title.y = element_text(margin=margin(0,-10,0,0)),
+        axis.text.y = element_text(margin = margin(0,-20,0,0)),
+        legend.title = element_blank())
+
+DT::datatable(dplyr::select(table, go_id, Term, Ontol, EnrichID, BH.correction, Num_Genes))
+
+```
+
+
+
+
+
+#[R-session information](`r paste0("http://bioinfo/", gsub("/home/", "~", getwd()), "/sessionInfo/StorySessionInfo.txt")`)
+
+

@@ -1,0 +1,331 @@
+---
+title: "Transcriptome" 
+author: "Eric Ross"
+output:
+  html_document:
+      code_download: true
+---
+
+# Overview
+
+Assembly and analysis of _Mnemiopsis leidyi_ transcriptome.
+
+```{r setup, include = FALSE}
+# better rendering error messages
+library(knitr)
+opts_chunk$set(message=FALSE, results = 'hide', fig.keep="all", warning=FALSE, error=FALSE, fig.path="./analysis_figures/")
+library(tidyverse)
+library(ggthemes)
+library(pander)
+library(gridExtra)
+library(RColorBrewer)
+library(wesanderson)
+library(gplots)
+library(rbokeh)
+  
+setwd("/home/ejr/analysis/")
+```
+
+# Data Sources
+
+Sequencing Directory: /n/projects/ejr/external_sequencing/Mnemiopsis_leidyi/NCBI
+
+| Time point | Year Collected | Replicate Name | left/right | Filename |
+| ---- | ---- | -- | - | ----------------------- |
+| 1hpf | 2012 | N7 | 1 | 1hpf_2012_N7_1.fastq.gz |
+| 1hpf | 2012 | N7 | 2 | 1hpf_2012_N7_2.fastq.gz |
+| 1hpf | 2013 | 21 | 1 | 1hpf_2013_21_1.fastq.gz |
+| 1hpf | 2013 | 21 | 2 | 1hpf_2013_21_2.fastq.gz |
+| 1hpf | 2013 | 41 | 1 | 1hpf_2013_41_1.fastq.gz |
+| 1hpf | 2013 | 41 | 2 | 1hpf_2013_41_2.fastq.gz |
+| 2hpf | 2012 | N6 | 1 | 2hpf_2012_N6_1.fastq.gz |
+| 2hpf | 2012 | N6 | 2 | 2hpf_2012_N6_2.fastq.gz |
+| 2hpf | 2013 | 22 | 1 | 2hpf_2013_22_1.fastq.gz |
+| 2hpf | 2013 | 22 | 2 | 2hpf_2013_22_2.fastq.gz |
+| 2hpf | 2013 | 32 | 1 | 2hpf_2013_32_1.fastq.gz |
+| 2hpf | 2013 | 32 | 2 | 2hpf_2013_32_2.fastq.gz |
+| 2hpf | 2013 | 42 | 1 | 2hpf_2013_42_1.fastq.gz |
+| 2hpf | 2013 | 42 | 2 | 2hpf_2013_42_2.fastq.gz |
+| 3hpf | 2012 | N5 | 1 | 3hpf_2012_N5_1.fastq.gz |
+| 3hpf | 2012 | N5 | 2 | 3hpf_2012_N5_2.fastq.gz |
+| 3hpf | 2013 | 23 | 1 | 3hpf_2013_23_1.fastq.gz |
+| 3hpf | 2013 | 23 | 2 | 3hpf_2013_23_2.fastq.gz |
+| 3hpf | 2013 | 33 | 1 | 3hpf_2013_33_1.fastq.gz |
+| 3hpf | 2013 | 33 | 2 | 3hpf_2013_33_2.fastq.gz |
+| 4hpf | 2012 | N4 | 1 | 4hpf_2012_N4_1.fastq.gz |
+| 4hpf | 2012 | N4 | 2 | 4hpf_2012_N4_2.fastq.gz |
+| 4hpf | 2013 | 24 | 1 | 4hpf_2013_24_1.fastq.gz |
+| 4hpf | 2013 | 24 | 2 | 4hpf_2013_24_2.fastq.gz |
+| 4hpf | 2013 | 34 | 1 | 4hpf_2013_34_1.fastq.gz |
+| 4hpf | 2013 | 34 | 2 | 4hpf_2013_34_2.fastq.gz |
+| 5hpf | 2012 | 14 | 1 | 5hpf_2012_14_1.fastq.gz |
+| 5hpf | 2012 | 14 | 2 | 5hpf_2012_14_2.fastq.gz |
+| 5hpf | 2012 | N3 | 1 | 5hpf_2012_N3_1.fastq.gz |
+| 5hpf | 2012 | N3 | 2 | 5hpf_2012_N3_2.fastq.gz |
+| 5hpf | 2013 | 25 | 1 | 5hpf_2013_25_1.fastq.gz |
+| 5hpf | 2013 | 25 | 2 | 5hpf_2013_25_2.fastq.gz |
+| 6hpf | 2012 | 23 | 1 | 6hpf_2012_23_1.fastq.gz |
+| 6hpf | 2012 | 23 | 2 | 6hpf_2012_23_2.fastq.gz |
+| 6hpf | 2012 | N2 | 1 | 6hpf_2012_N2_1.fastq.gz |
+| 6hpf | 2012 | N2 | 2 | 6hpf_2012_N2_2.fastq.gz |
+| 6hpf | 2013 | 26 | 1 | 6hpf_2013_26_1.fastq.gz |
+| 6hpf | 2013 | 26 | 2 | 6hpf_2013_26_2.fastq.gz |
+| 6hpf | 2013 | 46 | 1 | 6hpf_2013_46_1.fastq.gz |
+| 6hpf | 2013 | 46 | 2 | 6hpf_2013_46_2.fastq.gz |
+| 7hpf | 2012 | N1 | 1 | 7hpf_2012_N1_1.fastq.gz |
+| 7hpf | 2012 | N1 | 2 | 7hpf_2012_N1_2.fastq.gz |
+| 7hpf | 2013 | 17 | 1 | 7hpf_2013_17_1.fastq.gz |
+| 7hpf | 2013 | 17 | 2 | 7hpf_2013_17_2.fastq.gz |
+| 7hpf | 2013 | 27 | 1 | 7hpf_2013_27_1.fastq.gz |
+| 7hpf | 2013 | 27 | 2 | 7hpf_2013_27_2.fastq.gz |
+| 7hpf | 2013 | 47 | 1 | 7hpf_2013_47_1.fastq.gz |
+| 7hpf | 2013 | 47 | 2 | 7hpf_2013_47_2.fastq.gz |
+| 8hpf | 2012 | 18 | 1 | 8hpf_2012_18_1.fastq.gz |
+| 8hpf | 2012 | 18 | 2 | 8hpf_2012_18_2.fastq.gz |
+| 8hpf | 2012 | N8B | 1 | 8hpf_2012_N8B_1.fastq.gz |
+| 8hpf | 2012 | N8B | 2 | 8hpf_2012_N8B_2.fastq.gz |
+| 8hpf | 2013 | 18 | 1 | 8hpf_2013_18_1.fastq.gz |
+| 8hpf | 2013 | 18 | 2 | 8hpf_2013_18_2.fastq.gz |
+| 8hpf | 2013 | 28 | 1 | 8hpf_2013_28_1.fastq.gz |
+| 8hpf | 2013 | 28 | 2 | 8hpf_2013_28_2.fastq.gz |
+| 8hpf | 2013 | 48 | 1 | 8hpf_2013_48_1.fastq.gz |
+| 8hpf | 2013 | 48 | 2 | 8hpf_2013_48_2.fastq.gz |
+| 9hpf | 2012 | 37 | 1 | 9hpf_2012_37_1.fastq.gz |
+| 9hpf | 2012 | 37 | 2 | 9hpf_2012_37_2.fastq.gz |
+| 9hpf | 2013 | 49 | 1 | 9hpf_2013_49_1.fastq.gz |
+| 9hpf | 2013 | 49 | 2 | 9hpf_2013_49_2.fastq.gz |
+
+
+```{r DataSources, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10}
+# figure on depth here?
+```
+
+# Assembly
+
+Transcriptome assembly was performed with Trinity (trinityrnaseq_r20140717).  Left and right reads were concatenated and then passed to Trinity.
+
+<pre><code>Trinity \  
+--normalize_reads \  
+--max_memory 500G \  
+--CPU 16 \  
+--SS_lib_type FR \  
+--left \  
+lefts.fastq \  
+--right \  
+rights.fastq  
+</code></pre>
+
+## Initial Assembly Statistics
+
+| | |
+|---|---:|
+|Number of Sequences: | 233,327|
+|Total Length: | 160,677,750|
+|Average Length: | 688|
+|Longest Sequence: | 29,348|
+|Shortest Sequence: | 201|
+|%GC: | 40%|
+|N50: | 1,152|
+|N90: | 266|
+
+
+# Sequence Cleaning (Round 1)
+
+Assembled Transcriptome was run through seqclean to clean up adapter and contaminate from other species.  Seqclean also removes sequence below the specified length (300bp).  Trinity defaults to a 200bp minimum length which caused 90,500 short sequences to be dropped.
+
+<pre><code>seqclean \  
+Mnemiopsis_leidyi_trinity_20140802_unfiltered.nt \  
+-v /n/projects/ejr/blastdb/contaminate/UniVec \  
+-l 300 \  
+-c 16 \  
+-s /n/projects/ejr/blastdb/contaminate/Hs_GRCh38.nt,/n/projects/ejr/blastdb/contaminate/ecoli.nt  
+</code></pre>
+
+
+<pre><code>Output:
+**************************************************
+Sequences analyzed:    233327
+-----------------------------------
+                   valid:    141346  (24371 trimmed)
+                 trashed:     91981
+**************************************************
+----= Trashing summary =------
+               by 'short':    90500
+        by 'Hs_GRCh38.nt':       11
+              by 'shortq':      140
+            by 'ecoli.nt':       17
+              by 'UniVec':     1313
+------------------------------
+</code></pre>
+
+## Cleaned Assembly Statistics
+
+| | |
+|---|---:|
+|Number of Sequences: | 141,346|
+|Total Length: | 137,906,212|
+|Average Length: | 975|
+|Longest Sequence: | 29,348|
+|Shortest Sequence: | 300|
+|%GC: | 41%|
+|N50: | 1,486|
+|N90: | 405|
+
+
+# Genome Filtering
+
+In order to produce a more accurate transcriptome set we filtered out sequences not present in the available _M. leidyi_ genome. We used a very permissive requirement that any transcript alignign with at least 90% identity over any length of alignment ought to be retained.
+
+
+## Genome Filtered Transcript Statistics
+
+| | |
+|---|---:|
+|Number of Sequences: | 44,438|
+|Total Length: | 62,917,788|
+|Average Length: | 1,415|
+|Longest Sequence: | 29,348|
+|Shortest Sequence: | 300|
+|%GC: | 41%|
+|%N: | 0%|
+|N50: | 2,168|
+|N90: | 601|
+
+# Sequence Cleaning (Additional Rounds)
+
+NCBI detected additional contaminate in our sequences, primarily vector.  Seqclean did not remove concatenated adapter.  We ran additional rounds of Seqclean until we could no longer detect adapter.
+
+## Cleaned Sequence Statistics
+
+| | |
+|---|---:|
+|Number of Sequences: | 44,388|
+|Total Length: | 62,859,653|
+|Average Length: | 1,416|
+|Longest Sequence: | 29,348|
+|Shortest Sequence: | 300|
+|%GC: | 41%|
+|%N: | 0%|
+|N50: | 2,167|
+|N90: | 601|
+
+# Transcript collapse
+
+For RNAseq we wished to create a non-redundant set of transcripts by collapsing isoforms using CD-HIT.
+
+<pre><code>cd-hit-est \  
+-i in_genome_clean_r6.nt \  
+-o cdhit.nt \  
+-r 0 \  
+-c .95 \  
+-G 0 \  
+-aS .5 \  
+-M 0 \  
+-T 0  
+</code></pre>
+
+## Non-redundant Sequence Statistics
+
+| | |
+|---|---:|
+|Number of Sequences: | 31,067|
+|Total Length: | 47,344,147|
+|Average Length: | 1,523|
+|Longest Sequence: | 29,348|
+|Shortest Sequence: | 300|
+|%GC: | 41%|
+|%N: | 0%|
+|N50: | 2,200|
+|N90: | 692|
+
+
+# Sequence Renaming
+
+Sequence were renamed with a "Mle" prefix and zero padded numbers.  Names are in the format of Mle_000001.  
+
+# Annotation
+
+## Swissprot / uniprot
+
+Best BLASTX hits to swissprot with a maximum evalue of .001 were used to annotate genes.  
+
+<pre><code>blastx \
+-query Mleidyi_20160525.nt \  
+-db swissprot \  
+-max_target_seqs 1 \  
+-max_hsps 1 \  
+-evalue .001 \  
+-outfmt 6 \  
+-out ml_v_sp.blastx \  
+-num_threads 32
+</code></pre>
+
+## Pfam
+ 
+Sequences were translated with Transdecoder and then Domains were assigned to transcripts using hmmscan against Pfam-A.  
+<pre><code>Transdecoder.LongOrfs \  
+-S \
+-m 60 \
+-t Mleidyi_20160525.aa.fa
+</code></pre>
+
+All ORFs of 60aa or greater were retained.
+
+<pre><code>hmmscan \  
+-o Mleidyi_20160525.aa.fa.pfam.out \  
+--domtblout Mleidyi_20160525.aa.fa.pfam.table \  
+-E .01 \  
+--domE .01 \  
+--cpu 16 \  
+../db/Pfam-A.hmm \  
+</code></pre>
+
+
+<pre><code>
+awk '{print $4 "\t" $2}' Mleidyi_20160525.aa.fa.pfam.table | perl -p -e 's/(Mle_\d+)\|.*(\t.+)/$1$2/' | sort -u > mleidyi2pfam.txt
+</code></pre>
+
+## Software
+
+
+| Program      | Version                   |
+| ------------ | --------------------------|
+| Trinity      | trinityrnaseq_r20140717   |
+| Seqclean     | Downloaded Feb 22, 2011   |
+| BLAST+       | 2.3.0                     |
+| Transdecoder | 2.0.1                     |
+| cd-hit       | CD-HIT version 4.6        |
+| HMMeR        | 3.1b2                     |
+
+## Accession Numbers
+
+BioProject: PRJNA344880  
+TSA: GFAT00000000  
+
+## References
+
+
+CDHIT:  
+"Clustering of highly homologous sequences to reduce thesize of large protein database", Weizhong Li, Lukasz Jaroszewski & Adam Godzik. Bioinformatics, (2001) 17:282-283  
+   "Cd-hit: a fast program for clustering and comparing large sets of protein or nucleotide sequences", Weizhong Li & Adam Godzik. Bioinformatics, (2006) 22:1658-1659  
+
+HMMER:  
+Accelerated profile HMM searches. S. R. Eddy. PLoS Comp. Biol., 7:e1002195, 2011.  
+
+Trinity and Transdecoder:  
+Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.  
+
+BLAST+:  
+Camacho C., Coulouris G., Avagyan V., Ma N., Papadopoulos J., Bealer K., & Madden T.L. (2008) "BLAST+: architecture and applications." BMC Bioinformatics 10:421.  
+
+Seqclean:  
+https://sourceforge.net/projects/seqclean/  
+
+
+
+```{r session, echo=FALSE}
+writeLines(capture.output(sessionInfo()), "sessionInfo/transcriptomeSessionInfo.txt")
+```
+
+#[R-session information](`r paste0("http://bioinfo/", gsub("/home/", "~", getwd()), "/sessionInfo/StorySessionInfo.txt")`)
+

@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Eric Ross" />
+
+
+<title>Transcriptome</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/sandstone.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="site_libs/highlight/textmate.css"
+      type="text/css" />
+<script src="site_libs/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+#rmd-source-code {
+  display: none;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 61px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+
+.section h2 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h3 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h4 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h5 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h6 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: -22px; }
+.code-folding-btn.collapsed { margin-bottom: 4px; }
+</style>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<script src="site_libs/navigation-1.1/FileSaver.min.js"></script>
+<script src="site_libs/navigation-1.1/sourceembed.js"></script>
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("transcriptome.Rmd");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.9em;
+  padding-left: 5px;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+  padding-left: 10px;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><em>Mnemiopsis leidyi</em></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="experiment.html">Experiment</a>
+</li>
+<li>
+  <a href="transcriptome.html">Transcriptome</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Quality Control
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="analysis8hpaAllR.html">8hpa Control First Pass</a>
+    </li>
+    <li>
+      <a href="analysis8hpa5RR.html">8hpa Control Second Pass</a>
+    </li>
+    <li>
+      <a href="analysis2hpaAllR.html">2hpa Control First Pass</a>
+    </li>
+    <li>
+      <a href="analysis2hpa2RR.html">2hpa Control Second Pass</a>
+    </li>
+    <li>
+      <a href="analysisStepwise.html">Stepwise Test</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Differential Expression
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="StoryOfInitialAnalysis.html">Summary Analysis</a>
+    </li>
+    <li>
+      <a href="InitialAnalysis.html">Full Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="downloads.html">Downloads</a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Transcriptome</h1>
+<h4 class="author"><em>Eric Ross</em></h4>
+
+</div>
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>Assembly and analysis of <em>Mnemiopsis leidyi</em> transcriptome.</p>
+</div>
+<div id="data-sources" class="section level1">
+<h1>Data Sources</h1>
+<p>Sequencing Directory: /n/projects/ejr/external_sequencing/Mnemiopsis_leidyi/NCBI</p>
+<table>
+<thead>
+<tr class="header">
+<th>Time point</th>
+<th>Year Collected</th>
+<th>Replicate Name</th>
+<th>left/right</th>
+<th>Filename</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1hpf</td>
+<td>2012</td>
+<td>N7</td>
+<td>1</td>
+<td>1hpf_2012_N7_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>1hpf</td>
+<td>2012</td>
+<td>N7</td>
+<td>2</td>
+<td>1hpf_2012_N7_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>1hpf</td>
+<td>2013</td>
+<td>21</td>
+<td>1</td>
+<td>1hpf_2013_21_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>1hpf</td>
+<td>2013</td>
+<td>21</td>
+<td>2</td>
+<td>1hpf_2013_21_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>1hpf</td>
+<td>2013</td>
+<td>41</td>
+<td>1</td>
+<td>1hpf_2013_41_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>1hpf</td>
+<td>2013</td>
+<td>41</td>
+<td>2</td>
+<td>1hpf_2013_41_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>2hpf</td>
+<td>2012</td>
+<td>N6</td>
+<td>1</td>
+<td>2hpf_2012_N6_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>2hpf</td>
+<td>2012</td>
+<td>N6</td>
+<td>2</td>
+<td>2hpf_2012_N6_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>2hpf</td>
+<td>2013</td>
+<td>22</td>
+<td>1</td>
+<td>2hpf_2013_22_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>2hpf</td>
+<td>2013</td>
+<td>22</td>
+<td>2</td>
+<td>2hpf_2013_22_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>2hpf</td>
+<td>2013</td>
+<td>32</td>
+<td>1</td>
+<td>2hpf_2013_32_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>2hpf</td>
+<td>2013</td>
+<td>32</td>
+<td>2</td>
+<td>2hpf_2013_32_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>2hpf</td>
+<td>2013</td>
+<td>42</td>
+<td>1</td>
+<td>2hpf_2013_42_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>2hpf</td>
+<td>2013</td>
+<td>42</td>
+<td>2</td>
+<td>2hpf_2013_42_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>3hpf</td>
+<td>2012</td>
+<td>N5</td>
+<td>1</td>
+<td>3hpf_2012_N5_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>3hpf</td>
+<td>2012</td>
+<td>N5</td>
+<td>2</td>
+<td>3hpf_2012_N5_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>3hpf</td>
+<td>2013</td>
+<td>23</td>
+<td>1</td>
+<td>3hpf_2013_23_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>3hpf</td>
+<td>2013</td>
+<td>23</td>
+<td>2</td>
+<td>3hpf_2013_23_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>3hpf</td>
+<td>2013</td>
+<td>33</td>
+<td>1</td>
+<td>3hpf_2013_33_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>3hpf</td>
+<td>2013</td>
+<td>33</td>
+<td>2</td>
+<td>3hpf_2013_33_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>4hpf</td>
+<td>2012</td>
+<td>N4</td>
+<td>1</td>
+<td>4hpf_2012_N4_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>4hpf</td>
+<td>2012</td>
+<td>N4</td>
+<td>2</td>
+<td>4hpf_2012_N4_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>4hpf</td>
+<td>2013</td>
+<td>24</td>
+<td>1</td>
+<td>4hpf_2013_24_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>4hpf</td>
+<td>2013</td>
+<td>24</td>
+<td>2</td>
+<td>4hpf_2013_24_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>4hpf</td>
+<td>2013</td>
+<td>34</td>
+<td>1</td>
+<td>4hpf_2013_34_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>4hpf</td>
+<td>2013</td>
+<td>34</td>
+<td>2</td>
+<td>4hpf_2013_34_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>5hpf</td>
+<td>2012</td>
+<td>14</td>
+<td>1</td>
+<td>5hpf_2012_14_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>5hpf</td>
+<td>2012</td>
+<td>14</td>
+<td>2</td>
+<td>5hpf_2012_14_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>5hpf</td>
+<td>2012</td>
+<td>N3</td>
+<td>1</td>
+<td>5hpf_2012_N3_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>5hpf</td>
+<td>2012</td>
+<td>N3</td>
+<td>2</td>
+<td>5hpf_2012_N3_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>5hpf</td>
+<td>2013</td>
+<td>25</td>
+<td>1</td>
+<td>5hpf_2013_25_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>5hpf</td>
+<td>2013</td>
+<td>25</td>
+<td>2</td>
+<td>5hpf_2013_25_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>6hpf</td>
+<td>2012</td>
+<td>23</td>
+<td>1</td>
+<td>6hpf_2012_23_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>6hpf</td>
+<td>2012</td>
+<td>23</td>
+<td>2</td>
+<td>6hpf_2012_23_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>6hpf</td>
+<td>2012</td>
+<td>N2</td>
+<td>1</td>
+<td>6hpf_2012_N2_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>6hpf</td>
+<td>2012</td>
+<td>N2</td>
+<td>2</td>
+<td>6hpf_2012_N2_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>6hpf</td>
+<td>2013</td>
+<td>26</td>
+<td>1</td>
+<td>6hpf_2013_26_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>6hpf</td>
+<td>2013</td>
+<td>26</td>
+<td>2</td>
+<td>6hpf_2013_26_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>6hpf</td>
+<td>2013</td>
+<td>46</td>
+<td>1</td>
+<td>6hpf_2013_46_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>6hpf</td>
+<td>2013</td>
+<td>46</td>
+<td>2</td>
+<td>6hpf_2013_46_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>7hpf</td>
+<td>2012</td>
+<td>N1</td>
+<td>1</td>
+<td>7hpf_2012_N1_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>7hpf</td>
+<td>2012</td>
+<td>N1</td>
+<td>2</td>
+<td>7hpf_2012_N1_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>7hpf</td>
+<td>2013</td>
+<td>17</td>
+<td>1</td>
+<td>7hpf_2013_17_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>7hpf</td>
+<td>2013</td>
+<td>17</td>
+<td>2</td>
+<td>7hpf_2013_17_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>7hpf</td>
+<td>2013</td>
+<td>27</td>
+<td>1</td>
+<td>7hpf_2013_27_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>7hpf</td>
+<td>2013</td>
+<td>27</td>
+<td>2</td>
+<td>7hpf_2013_27_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>7hpf</td>
+<td>2013</td>
+<td>47</td>
+<td>1</td>
+<td>7hpf_2013_47_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>7hpf</td>
+<td>2013</td>
+<td>47</td>
+<td>2</td>
+<td>7hpf_2013_47_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>8hpf</td>
+<td>2012</td>
+<td>18</td>
+<td>1</td>
+<td>8hpf_2012_18_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>8hpf</td>
+<td>2012</td>
+<td>18</td>
+<td>2</td>
+<td>8hpf_2012_18_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>8hpf</td>
+<td>2012</td>
+<td>N8B</td>
+<td>1</td>
+<td>8hpf_2012_N8B_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>8hpf</td>
+<td>2012</td>
+<td>N8B</td>
+<td>2</td>
+<td>8hpf_2012_N8B_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>8hpf</td>
+<td>2013</td>
+<td>18</td>
+<td>1</td>
+<td>8hpf_2013_18_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>8hpf</td>
+<td>2013</td>
+<td>18</td>
+<td>2</td>
+<td>8hpf_2013_18_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>8hpf</td>
+<td>2013</td>
+<td>28</td>
+<td>1</td>
+<td>8hpf_2013_28_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>8hpf</td>
+<td>2013</td>
+<td>28</td>
+<td>2</td>
+<td>8hpf_2013_28_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>8hpf</td>
+<td>2013</td>
+<td>48</td>
+<td>1</td>
+<td>8hpf_2013_48_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>8hpf</td>
+<td>2013</td>
+<td>48</td>
+<td>2</td>
+<td>8hpf_2013_48_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>9hpf</td>
+<td>2012</td>
+<td>37</td>
+<td>1</td>
+<td>9hpf_2012_37_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>9hpf</td>
+<td>2012</td>
+<td>37</td>
+<td>2</td>
+<td>9hpf_2012_37_2.fastq.gz</td>
+</tr>
+<tr class="odd">
+<td>9hpf</td>
+<td>2013</td>
+<td>49</td>
+<td>1</td>
+<td>9hpf_2013_49_1.fastq.gz</td>
+</tr>
+<tr class="even">
+<td>9hpf</td>
+<td>2013</td>
+<td>49</td>
+<td>2</td>
+<td>9hpf_2013_49_2.fastq.gz</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="assembly" class="section level1">
+<h1>Assembly</h1>
+<p>Transcriptome assembly was performed with Trinity (trinityrnaseq_r20140717). Left and right reads were concatenated and then passed to Trinity.</p>
+<pre><code>Trinity \  
+--normalize_reads \  
+--max_memory 500G \  
+--CPU 16 \  
+--SS_lib_type FR \  
+--left \  
+lefts.fastq \  
+--right \  
+rights.fastq  
+</code></pre>
+<div id="initial-assembly-statistics" class="section level2">
+<h2>Initial Assembly Statistics</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>Number of Sequences:</td>
+<td align="right">233,327</td>
+</tr>
+<tr class="even">
+<td>Total Length:</td>
+<td align="right">160,677,750</td>
+</tr>
+<tr class="odd">
+<td>Average Length:</td>
+<td align="right">688</td>
+</tr>
+<tr class="even">
+<td>Longest Sequence:</td>
+<td align="right">29,348</td>
+</tr>
+<tr class="odd">
+<td>Shortest Sequence:</td>
+<td align="right">201</td>
+</tr>
+<tr class="even">
+<td>%GC:</td>
+<td align="right">40%</td>
+</tr>
+<tr class="odd">
+<td>N50:</td>
+<td align="right">1,152</td>
+</tr>
+<tr class="even">
+<td>N90:</td>
+<td align="right">266</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="sequence-cleaning-round-1" class="section level1">
+<h1>Sequence Cleaning (Round 1)</h1>
+<p>Assembled Transcriptome was run through seqclean to clean up adapter and contaminate from other species. Seqclean also removes sequence below the specified length (300bp). Trinity defaults to a 200bp minimum length which caused 90,500 short sequences to be dropped.</p>
+<pre><code>seqclean \  
+Mnemiopsis_leidyi_trinity_20140802_unfiltered.nt \  
+-v /n/projects/ejr/blastdb/contaminate/UniVec \  
+-l 300 \  
+-c 16 \  
+-s /n/projects/ejr/blastdb/contaminate/Hs_GRCh38.nt,/n/projects/ejr/blastdb/contaminate/ecoli.nt  
+</code></pre>
+<pre><code>Output:
+**************************************************
+Sequences analyzed:    233327
+-----------------------------------
+                   valid:    141346  (24371 trimmed)
+                 trashed:     91981
+**************************************************
+----= Trashing summary =------
+               by 'short':    90500
+        by 'Hs_GRCh38.nt':       11
+              by 'shortq':      140
+            by 'ecoli.nt':       17
+              by 'UniVec':     1313
+------------------------------
+</code></pre>
+<div id="cleaned-assembly-statistics" class="section level2">
+<h2>Cleaned Assembly Statistics</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>Number of Sequences:</td>
+<td align="right">141,346</td>
+</tr>
+<tr class="even">
+<td>Total Length:</td>
+<td align="right">137,906,212</td>
+</tr>
+<tr class="odd">
+<td>Average Length:</td>
+<td align="right">975</td>
+</tr>
+<tr class="even">
+<td>Longest Sequence:</td>
+<td align="right">29,348</td>
+</tr>
+<tr class="odd">
+<td>Shortest Sequence:</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td>%GC:</td>
+<td align="right">41%</td>
+</tr>
+<tr class="odd">
+<td>N50:</td>
+<td align="right">1,486</td>
+</tr>
+<tr class="even">
+<td>N90:</td>
+<td align="right">405</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="genome-filtering" class="section level1">
+<h1>Genome Filtering</h1>
+<p>In order to produce a more accurate transcriptome set we filtered out sequences not present in the available <em>M. leidyi</em> genome. We used a very permissive requirement that any transcript alignign with at least 90% identity over any length of alignment ought to be retained.</p>
+<div id="genome-filtered-transcript-statistics" class="section level2">
+<h2>Genome Filtered Transcript Statistics</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>Number of Sequences:</td>
+<td align="right">44,438</td>
+</tr>
+<tr class="even">
+<td>Total Length:</td>
+<td align="right">62,917,788</td>
+</tr>
+<tr class="odd">
+<td>Average Length:</td>
+<td align="right">1,415</td>
+</tr>
+<tr class="even">
+<td>Longest Sequence:</td>
+<td align="right">29,348</td>
+</tr>
+<tr class="odd">
+<td>Shortest Sequence:</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td>%GC:</td>
+<td align="right">41%</td>
+</tr>
+<tr class="odd">
+<td>%N:</td>
+<td align="right">0%</td>
+</tr>
+<tr class="even">
+<td>N50:</td>
+<td align="right">2,168</td>
+</tr>
+<tr class="odd">
+<td>N90:</td>
+<td align="right">601</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="sequence-cleaning-additional-rounds" class="section level1">
+<h1>Sequence Cleaning (Additional Rounds)</h1>
+<p>NCBI detected additional contaminate in our sequences, primarily vector. Seqclean did not remove concatenated adapter. We ran additional rounds of Seqclean until we could no longer detect adapter.</p>
+<div id="cleaned-sequence-statistics" class="section level2">
+<h2>Cleaned Sequence Statistics</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>Number of Sequences:</td>
+<td align="right">44,388</td>
+</tr>
+<tr class="even">
+<td>Total Length:</td>
+<td align="right">62,859,653</td>
+</tr>
+<tr class="odd">
+<td>Average Length:</td>
+<td align="right">1,416</td>
+</tr>
+<tr class="even">
+<td>Longest Sequence:</td>
+<td align="right">29,348</td>
+</tr>
+<tr class="odd">
+<td>Shortest Sequence:</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td>%GC:</td>
+<td align="right">41%</td>
+</tr>
+<tr class="odd">
+<td>%N:</td>
+<td align="right">0%</td>
+</tr>
+<tr class="even">
+<td>N50:</td>
+<td align="right">2,167</td>
+</tr>
+<tr class="odd">
+<td>N90:</td>
+<td align="right">601</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="transcript-collapse" class="section level1">
+<h1>Transcript collapse</h1>
+<p>For RNAseq we wished to create a non-redundant set of transcripts by collapsing isoforms using CD-HIT.</p>
+<pre><code>cd-hit-est \  
+-i in_genome_clean_r6.nt \  
+-o cdhit.nt \  
+-r 0 \  
+-c .95 \  
+-G 0 \  
+-aS .5 \  
+-M 0 \  
+-T 0  
+</code></pre>
+<div id="non-redundant-sequence-statistics" class="section level2">
+<h2>Non-redundant Sequence Statistics</h2>
+<table>
+<tbody>
+<tr class="odd">
+<td>Number of Sequences:</td>
+<td align="right">31,067</td>
+</tr>
+<tr class="even">
+<td>Total Length:</td>
+<td align="right">47,344,147</td>
+</tr>
+<tr class="odd">
+<td>Average Length:</td>
+<td align="right">1,523</td>
+</tr>
+<tr class="even">
+<td>Longest Sequence:</td>
+<td align="right">29,348</td>
+</tr>
+<tr class="odd">
+<td>Shortest Sequence:</td>
+<td align="right">300</td>
+</tr>
+<tr class="even">
+<td>%GC:</td>
+<td align="right">41%</td>
+</tr>
+<tr class="odd">
+<td>%N:</td>
+<td align="right">0%</td>
+</tr>
+<tr class="even">
+<td>N50:</td>
+<td align="right">2,200</td>
+</tr>
+<tr class="odd">
+<td>N90:</td>
+<td align="right">692</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="sequence-renaming" class="section level1">
+<h1>Sequence Renaming</h1>
+<p>Sequence were renamed with a “Mle” prefix and zero padded numbers. Names are in the format of Mle_000001.</p>
+</div>
+<div id="annotation" class="section level1">
+<h1>Annotation</h1>
+<div id="swissprot-uniprot" class="section level2">
+<h2>Swissprot / uniprot</h2>
+<p>Best BLASTX hits to swissprot with a maximum evalue of .001 were used to annotate genes.</p>
+<pre><code>blastx \
+-query Mleidyi_20160525.nt \  
+-db swissprot \  
+-max_target_seqs 1 \  
+-max_hsps 1 \  
+-evalue .001 \  
+-outfmt 6 \  
+-out ml_v_sp.blastx \  
+-num_threads 32
+</code></pre>
+</div>
+<div id="pfam" class="section level2">
+<h2>Pfam</h2>
+Sequences were translated with Transdecoder and then Domains were assigned to transcripts using hmmscan against Pfam-A.<br />
+
+<pre><code>Transdecoder.LongOrfs \  
+-S \
+-m 60 \
+-t Mleidyi_20160525.aa.fa
+</code></pre>
+<p>All ORFs of 60aa or greater were retained.</p>
+<pre><code>hmmscan \  
+-o Mleidyi_20160525.aa.fa.pfam.out \  
+--domtblout Mleidyi_20160525.aa.fa.pfam.table \  
+-E .01 \  
+--domE .01 \  
+--cpu 16 \  
+../db/Pfam-A.hmm \  
+</code></pre>
+<pre><code>
+awk '{print $4 "\t" $2}' Mleidyi_20160525.aa.fa.pfam.table | perl -p -e 's/(Mle_\d+)\|.*(\t.+)/$1$2/' | sort -u > mleidyi2pfam.txt
+</code></pre>
+</div>
+<div id="software" class="section level2">
+<h2>Software</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Program</th>
+<th>Version</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Trinity</td>
+<td>trinityrnaseq_r20140717</td>
+</tr>
+<tr class="even">
+<td>Seqclean</td>
+<td>Downloaded Feb 22, 2011</td>
+</tr>
+<tr class="odd">
+<td>BLAST+</td>
+<td>2.3.0</td>
+</tr>
+<tr class="even">
+<td>Transdecoder</td>
+<td>2.0.1</td>
+</tr>
+<tr class="odd">
+<td>cd-hit</td>
+<td>CD-HIT version 4.6</td>
+</tr>
+<tr class="even">
+<td>HMMeR</td>
+<td>3.1b2</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="accession-numbers" class="section level2">
+<h2>Accession Numbers</h2>
+<p>BioProject: PRJNA344880<br />
+TSA: GFAT00000000</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>CDHIT:<br />
+“Clustering of highly homologous sequences to reduce thesize of large protein database”, Weizhong Li, Lukasz Jaroszewski &amp; Adam Godzik. Bioinformatics, (2001) 17:282-283<br />
+“Cd-hit: a fast program for clustering and comparing large sets of protein or nucleotide sequences”, Weizhong Li &amp; Adam Godzik. Bioinformatics, (2006) 22:1658-1659</p>
+<p>HMMER:<br />
+Accelerated profile HMM searches. S. R. Eddy. PLoS Comp. Biol., 7:e1002195, 2011.</p>
+<p>Trinity and Transdecoder:<br />
+Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.</p>
+<p>BLAST+:<br />
+Camacho C., Coulouris G., Avagyan V., Ma N., Papadopoulos J., Bealer K., &amp; Madden T.L. (2008) “BLAST+: architecture and applications.” BMC Bioinformatics 10:421.</p>
+<p>Seqclean:<br />
+<a href="https://sourceforge.net/projects/seqclean/" class="uri">https://sourceforge.net/projects/seqclean/</a></p>
+</div>
+</div>
+<div id="r-session-information" class="section level1">
+<h1><a href="http://bioinfo/~klg/projects/Mnemiopsis/website/sessionInfo/StorySessionInfo.txt">R-session information</a></h1>
+</div>
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiVHJhbnNjcmlwdG9tZSIgCmF1dGhvcjogIkVyaWMgUm9zcyIKb3V0cHV0OgogIGh0bWxfZG9jdW1lbnQ6CiAgICAgIGNvZGVfZG93bmxvYWQ6IHRydWUKLS0tCgojIE92ZXJ2aWV3CgpBc3NlbWJseSBhbmQgYW5hbHlzaXMgb2YgX01uZW1pb3BzaXMgbGVpZHlpXyB0cmFuc2NyaXB0b21lLgoKYGBge3Igc2V0dXAsIGluY2x1ZGUgPSBGQUxTRX0KIyBiZXR0ZXIgcmVuZGVyaW5nIGVycm9yIG1lc3NhZ2VzCmxpYnJhcnkoa25pdHIpCm9wdHNfY2h1bmskc2V0KG1lc3NhZ2U9RkFMU0UsIHJlc3VsdHMgPSAnaGlkZScsIGZpZy5rZWVwPSJhbGwiLCB3YXJuaW5nPUZBTFNFLCBlcnJvcj1GQUxTRSwgZmlnLnBhdGg9Ii4vYW5hbHlzaXNfZmlndXJlcy8iKQpsaWJyYXJ5KHRpZHl2ZXJzZSkKbGlicmFyeShnZ3RoZW1lcykKbGlicmFyeShwYW5kZXIpCmxpYnJhcnkoZ3JpZEV4dHJhKQpsaWJyYXJ5KFJDb2xvckJyZXdlcikKbGlicmFyeSh3ZXNhbmRlcnNvbikKbGlicmFyeShncGxvdHMpCmxpYnJhcnkocmJva2VoKQogIApzZXR3ZCgiL2hvbWUvZWpyL2FuYWx5c2lzLyIpCmBgYAoKIyBEYXRhIFNvdXJjZXMKClNlcXVlbmNpbmcgRGlyZWN0b3J5OiAvbi9wcm9qZWN0cy9lanIvZXh0ZXJuYWxfc2VxdWVuY2luZy9NbmVtaW9wc2lzX2xlaWR5aS9OQ0JJCgp8IFRpbWUgcG9pbnQgfCBZZWFyIENvbGxlY3RlZCB8IFJlcGxpY2F0ZSBOYW1lIHwgbGVmdC9yaWdodCB8IEZpbGVuYW1lIHwKfCAtLS0tIHwgLS0tLSB8IC0tIHwgLSB8IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tIHwKfCAxaHBmIHwgMjAxMiB8IE43IHwgMSB8IDFocGZfMjAxMl9ON18xLmZhc3RxLmd6IHwKfCAxaHBmIHwgMjAxMiB8IE43IHwgMiB8IDFocGZfMjAxMl9ON18yLmZhc3RxLmd6IHwKfCAxaHBmIHwgMjAxMyB8IDIxIHwgMSB8IDFocGZfMjAxM18yMV8xLmZhc3RxLmd6IHwKfCAxaHBmIHwgMjAxMyB8IDIxIHwgMiB8IDFocGZfMjAxM18yMV8yLmZhc3RxLmd6IHwKfCAxaHBmIHwgMjAxMyB8IDQxIHwgMSB8IDFocGZfMjAxM180MV8xLmZhc3RxLmd6IHwKfCAxaHBmIHwgMjAxMyB8IDQxIHwgMiB8IDFocGZfMjAxM180MV8yLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMiB8IE42IHwgMSB8IDJocGZfMjAxMl9ONl8xLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMiB8IE42IHwgMiB8IDJocGZfMjAxMl9ONl8yLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDIyIHwgMSB8IDJocGZfMjAxM18yMl8xLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDIyIHwgMiB8IDJocGZfMjAxM18yMl8yLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDMyIHwgMSB8IDJocGZfMjAxM18zMl8xLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDMyIHwgMiB8IDJocGZfMjAxM18zMl8yLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDQyIHwgMSB8IDJocGZfMjAxM180Ml8xLmZhc3RxLmd6IHwKfCAyaHBmIHwgMjAxMyB8IDQyIHwgMiB8IDJocGZfMjAxM180Ml8yLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMiB8IE41IHwgMSB8IDNocGZfMjAxMl9ONV8xLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMiB8IE41IHwgMiB8IDNocGZfMjAxMl9ONV8yLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMyB8IDIzIHwgMSB8IDNocGZfMjAxM18yM18xLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMyB8IDIzIHwgMiB8IDNocGZfMjAxM18yM18yLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMyB8IDMzIHwgMSB8IDNocGZfMjAxM18zM18xLmZhc3RxLmd6IHwKfCAzaHBmIHwgMjAxMyB8IDMzIHwgMiB8IDNocGZfMjAxM18zM18yLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMiB8IE40IHwgMSB8IDRocGZfMjAxMl9ONF8xLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMiB8IE40IHwgMiB8IDRocGZfMjAxMl9ONF8yLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMyB8IDI0IHwgMSB8IDRocGZfMjAxM18yNF8xLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMyB8IDI0IHwgMiB8IDRocGZfMjAxM18yNF8yLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMyB8IDM0IHwgMSB8IDRocGZfMjAxM18zNF8xLmZhc3RxLmd6IHwKfCA0aHBmIHwgMjAxMyB8IDM0IHwgMiB8IDRocGZfMjAxM18zNF8yLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMiB8IDE0IHwgMSB8IDVocGZfMjAxMl8xNF8xLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMiB8IDE0IHwgMiB8IDVocGZfMjAxMl8xNF8yLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMiB8IE4zIHwgMSB8IDVocGZfMjAxMl9OM18xLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMiB8IE4zIHwgMiB8IDVocGZfMjAxMl9OM18yLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMyB8IDI1IHwgMSB8IDVocGZfMjAxM18yNV8xLmZhc3RxLmd6IHwKfCA1aHBmIHwgMjAxMyB8IDI1IHwgMiB8IDVocGZfMjAxM18yNV8yLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMiB8IDIzIHwgMSB8IDZocGZfMjAxMl8yM18xLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMiB8IDIzIHwgMiB8IDZocGZfMjAxMl8yM18yLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMiB8IE4yIHwgMSB8IDZocGZfMjAxMl9OMl8xLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMiB8IE4yIHwgMiB8IDZocGZfMjAxMl9OMl8yLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMyB8IDI2IHwgMSB8IDZocGZfMjAxM18yNl8xLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMyB8IDI2IHwgMiB8IDZocGZfMjAxM18yNl8yLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMyB8IDQ2IHwgMSB8IDZocGZfMjAxM180Nl8xLmZhc3RxLmd6IHwKfCA2aHBmIHwgMjAxMyB8IDQ2IHwgMiB8IDZocGZfMjAxM180Nl8yLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMiB8IE4xIHwgMSB8IDdocGZfMjAxMl9OMV8xLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMiB8IE4xIHwgMiB8IDdocGZfMjAxMl9OMV8yLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDE3IHwgMSB8IDdocGZfMjAxM18xN18xLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDE3IHwgMiB8IDdocGZfMjAxM18xN18yLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDI3IHwgMSB8IDdocGZfMjAxM18yN18xLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDI3IHwgMiB8IDdocGZfMjAxM18yN18yLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDQ3IHwgMSB8IDdocGZfMjAxM180N18xLmZhc3RxLmd6IHwKfCA3aHBmIHwgMjAxMyB8IDQ3IHwgMiB8IDdocGZfMjAxM180N18yLmZhc3RxLmd6IHwKfCA4aHBmIHwgMjAxMiB8IDE4IHwgMSB8IDhocGZfMjAxMl8xOF8xLmZhc3RxLmd6IHwKfCA4aHBmIHwgMjAxMiB8IDE4IHwgMiB8IDhocGZfMjAxMl8xOF8yLmZhc3RxLmd6IHwKfCA4aHBmIHwgMjAxMiB8IE44QiB8IDEgfCA4aHBmXzIwMTJfTjhCXzEuZmFzdHEuZ3ogfAp8IDhocGYgfCAyMDEyIHwgTjhCIHwgMiB8IDhocGZfMjAxMl9OOEJfMi5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCAxOCB8IDEgfCA4aHBmXzIwMTNfMThfMS5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCAxOCB8IDIgfCA4aHBmXzIwMTNfMThfMi5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCAyOCB8IDEgfCA4aHBmXzIwMTNfMjhfMS5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCAyOCB8IDIgfCA4aHBmXzIwMTNfMjhfMi5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCA0OCB8IDEgfCA4aHBmXzIwMTNfNDhfMS5mYXN0cS5neiB8CnwgOGhwZiB8IDIwMTMgfCA0OCB8IDIgfCA4aHBmXzIwMTNfNDhfMi5mYXN0cS5neiB8CnwgOWhwZiB8IDIwMTIgfCAzNyB8IDEgfCA5aHBmXzIwMTJfMzdfMS5mYXN0cS5neiB8CnwgOWhwZiB8IDIwMTIgfCAzNyB8IDIgfCA5aHBmXzIwMTJfMzdfMi5mYXN0cS5neiB8CnwgOWhwZiB8IDIwMTMgfCA0OSB8IDEgfCA5aHBmXzIwMTNfNDlfMS5mYXN0cS5neiB8CnwgOWhwZiB8IDIwMTMgfCA0OSB8IDIgfCA5aHBmXzIwMTNfNDlfMi5mYXN0cS5neiB8CgoKYGBge3IgRGF0YVNvdXJjZXMsIGVjaG89RkFMU0UsIHdhcm5pbmc9RkFMU0UsIG1lc3NhZ2U9RkFMU0UsIGZpZy53aWR0aD0xMH0KIyBmaWd1cmUgb24gZGVwdGggaGVyZT8KYGBgCgojIEFzc2VtYmx5CgpUcmFuc2NyaXB0b21lIGFzc2VtYmx5IHdhcyBwZXJmb3JtZWQgd2l0aCBUcmluaXR5ICh0cmluaXR5cm5hc2VxX3IyMDE0MDcxNykuICBMZWZ0IGFuZCByaWdodCByZWFkcyB3ZXJlIGNvbmNhdGVuYXRlZCBhbmQgdGhlbiBwYXNzZWQgdG8gVHJpbml0eS4KCjxwcmU+PGNvZGU+VHJpbml0eSBcICAKLS1ub3JtYWxpemVfcmVhZHMgXCAgCi0tbWF4X21lbW9yeSA1MDBHIFwgIAotLUNQVSAxNiBcICAKLS1TU19saWJfdHlwZSBGUiBcICAKLS1sZWZ0IFwgIApsZWZ0cy5mYXN0cSBcICAKLS1yaWdodCBcICAKcmlnaHRzLmZhc3RxICAKPC9jb2RlPjwvcHJlPgoKIyMgSW5pdGlhbCBBc3NlbWJseSBTdGF0aXN0aWNzCgp8IHwgfAp8LS0tfC0tLTp8CnxOdW1iZXIgb2YgU2VxdWVuY2VzOiB8IDIzMywzMjd8CnxUb3RhbCBMZW5ndGg6IHwgMTYwLDY3Nyw3NTB8CnxBdmVyYWdlIExlbmd0aDogfCA2ODh8CnxMb25nZXN0IFNlcXVlbmNlOiB8IDI5LDM0OHwKfFNob3J0ZXN0IFNlcXVlbmNlOiB8IDIwMXwKfCVHQzogfCA0MCV8CnxONTA6IHwgMSwxNTJ8CnxOOTA6IHwgMjY2fAoKCiMgU2VxdWVuY2UgQ2xlYW5pbmcgKFJvdW5kIDEpCgpBc3NlbWJsZWQgVHJhbnNjcmlwdG9tZSB3YXMgcnVuIHRocm91Z2ggc2VxY2xlYW4gdG8gY2xlYW4gdXAgYWRhcHRlciBhbmQgY29udGFtaW5hdGUgZnJvbSBvdGhlciBzcGVjaWVzLiAgU2VxY2xlYW4gYWxzbyByZW1vdmVzIHNlcXVlbmNlIGJlbG93IHRoZSBzcGVjaWZpZWQgbGVuZ3RoICgzMDBicCkuICBUcmluaXR5IGRlZmF1bHRzIHRvIGEgMjAwYnAgbWluaW11bSBsZW5ndGggd2hpY2ggY2F1c2VkIDkwLDUwMCBzaG9ydCBzZXF1ZW5jZXMgdG8gYmUgZHJvcHBlZC4KCjxwcmU+PGNvZGU+c2VxY2xlYW4gXCAgCk1uZW1pb3BzaXNfbGVpZHlpX3RyaW5pdHlfMjAxNDA4MDJfdW5maWx0ZXJlZC5udCBcICAKLXYgL24vcHJvamVjdHMvZWpyL2JsYXN0ZGIvY29udGFtaW5hdGUvVW5pVmVjIFwgIAotbCAzMDAgXCAgCi1jIDE2IFwgIAotcyAvbi9wcm9qZWN0cy9lanIvYmxhc3RkYi9jb250YW1pbmF0ZS9Ic19HUkNoMzgubnQsL24vcHJvamVjdHMvZWpyL2JsYXN0ZGIvY29udGFtaW5hdGUvZWNvbGkubnQgIAo8L2NvZGU+PC9wcmU+CgoKPHByZT48Y29kZT5PdXRwdXQ6CioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqClNlcXVlbmNlcyBhbmFseXplZDogICAgMjMzMzI3Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAgICAgICAgICAgICAgICAgICB2YWxpZDogICAgMTQxMzQ2ICAoMjQzNzEgdHJpbW1lZCkKICAgICAgICAgICAgICAgICB0cmFzaGVkOiAgICAgOTE5ODEKKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioKLS0tLT0gVHJhc2hpbmcgc3VtbWFyeSA9LS0tLS0tCiAgICAgICAgICAgICAgIGJ5ICdzaG9ydCc6ICAgIDkwNTAwCiAgICAgICAgYnkgJ0hzX0dSQ2gzOC5udCc6ICAgICAgIDExCiAgICAgICAgICAgICAgYnkgJ3Nob3J0cSc6ICAgICAgMTQwCiAgICAgICAgICAgIGJ5ICdlY29saS5udCc6ICAgICAgIDE3CiAgICAgICAgICAgICAgYnkgJ1VuaVZlYyc6ICAgICAxMzEzCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo8L2NvZGU+PC9wcmU+CgojIyBDbGVhbmVkIEFzc2VtYmx5IFN0YXRpc3RpY3MKCnwgfCB8CnwtLS18LS0tOnwKfE51bWJlciBvZiBTZXF1ZW5jZXM6IHwgMTQxLDM0NnwKfFRvdGFsIExlbmd0aDogfCAxMzcsOTA2LDIxMnwKfEF2ZXJhZ2UgTGVuZ3RoOiB8IDk3NXwKfExvbmdlc3QgU2VxdWVuY2U6IHwgMjksMzQ4fAp8U2hvcnRlc3QgU2VxdWVuY2U6IHwgMzAwfAp8JUdDOiB8IDQxJXwKfE41MDogfCAxLDQ4NnwKfE45MDogfCA0MDV8CgoKIyBHZW5vbWUgRmlsdGVyaW5nCgpJbiBvcmRlciB0byBwcm9kdWNlIGEgbW9yZSBhY2N1cmF0ZSB0cmFuc2NyaXB0b21lIHNldCB3ZSBmaWx0ZXJlZCBvdXQgc2VxdWVuY2VzIG5vdCBwcmVzZW50IGluIHRoZSBhdmFpbGFibGUgX00uIGxlaWR5aV8gZ2Vub21lLiBXZSB1c2VkIGEgdmVyeSBwZXJtaXNzaXZlIHJlcXVpcmVtZW50IHRoYXQgYW55IHRyYW5zY3JpcHQgYWxpZ25pZ24gd2l0aCBhdCBsZWFzdCA5MCUgaWRlbnRpdHkgb3ZlciBhbnkgbGVuZ3RoIG9mIGFsaWdubWVudCBvdWdodCB0byBiZSByZXRhaW5lZC4KCgojIyBHZW5vbWUgRmlsdGVyZWQgVHJhbnNjcmlwdCBTdGF0aXN0aWNzCgp8IHwgfAp8LS0tfC0tLTp8CnxOdW1iZXIgb2YgU2VxdWVuY2VzOiB8IDQ0LDQzOHwKfFRvdGFsIExlbmd0aDogfCA2Miw5MTcsNzg4fAp8QXZlcmFnZSBMZW5ndGg6IHwgMSw0MTV8CnxMb25nZXN0IFNlcXVlbmNlOiB8IDI5LDM0OHwKfFNob3J0ZXN0IFNlcXVlbmNlOiB8IDMwMHwKfCVHQzogfCA0MSV8CnwlTjogfCAwJXwKfE41MDogfCAyLDE2OHwKfE45MDogfCA2MDF8CgojIFNlcXVlbmNlIENsZWFuaW5nIChBZGRpdGlvbmFsIFJvdW5kcykKCk5DQkkgZGV0ZWN0ZWQgYWRkaXRpb25hbCBjb250YW1pbmF0ZSBpbiBvdXIgc2VxdWVuY2VzLCBwcmltYXJpbHkgdmVjdG9yLiAgU2VxY2xlYW4gZGlkIG5vdCByZW1vdmUgY29uY2F0ZW5hdGVkIGFkYXB0ZXIuICBXZSByYW4gYWRkaXRpb25hbCByb3VuZHMgb2YgU2VxY2xlYW4gdW50aWwgd2UgY291bGQgbm8gbG9uZ2VyIGRldGVjdCBhZGFwdGVyLgoKIyMgQ2xlYW5lZCBTZXF1ZW5jZSBTdGF0aXN0aWNzCgp8IHwgfAp8LS0tfC0tLTp8CnxOdW1iZXIgb2YgU2VxdWVuY2VzOiB8IDQ0LDM4OHwKfFRvdGFsIExlbmd0aDogfCA2Miw4NTksNjUzfAp8QXZlcmFnZSBMZW5ndGg6IHwgMSw0MTZ8CnxMb25nZXN0IFNlcXVlbmNlOiB8IDI5LDM0OHwKfFNob3J0ZXN0IFNlcXVlbmNlOiB8IDMwMHwKfCVHQzogfCA0MSV8CnwlTjogfCAwJXwKfE41MDogfCAyLDE2N3wKfE45MDogfCA2MDF8CgojIFRyYW5zY3JpcHQgY29sbGFwc2UKCkZvciBSTkFzZXEgd2Ugd2lzaGVkIHRvIGNyZWF0ZSBhIG5vbi1yZWR1bmRhbnQgc2V0IG9mIHRyYW5zY3JpcHRzIGJ5IGNvbGxhcHNpbmcgaXNvZm9ybXMgdXNpbmcgQ0QtSElULgoKPHByZT48Y29kZT5jZC1oaXQtZXN0IFwgIAotaSBpbl9nZW5vbWVfY2xlYW5fcjYubnQgXCAgCi1vIGNkaGl0Lm50IFwgIAotciAwIFwgIAotYyAuOTUgXCAgCi1HIDAgXCAgCi1hUyAuNSBcICAKLU0gMCBcICAKLVQgMCAgCjwvY29kZT48L3ByZT4KCiMjIE5vbi1yZWR1bmRhbnQgU2VxdWVuY2UgU3RhdGlzdGljcwoKfCB8IHwKfC0tLXwtLS06fAp8TnVtYmVyIG9mIFNlcXVlbmNlczogfCAzMSwwNjd8CnxUb3RhbCBMZW5ndGg6IHwgNDcsMzQ0LDE0N3wKfEF2ZXJhZ2UgTGVuZ3RoOiB8IDEsNTIzfAp8TG9uZ2VzdCBTZXF1ZW5jZTogfCAyOSwzNDh8CnxTaG9ydGVzdCBTZXF1ZW5jZTogfCAzMDB8CnwlR0M6IHwgNDElfAp8JU46IHwgMCV8CnxONTA6IHwgMiwyMDB8CnxOOTA6IHwgNjkyfAoKCiMgU2VxdWVuY2UgUmVuYW1pbmcKClNlcXVlbmNlIHdlcmUgcmVuYW1lZCB3aXRoIGEgIk1sZSIgcHJlZml4IGFuZCB6ZXJvIHBhZGRlZCBudW1iZXJzLiAgTmFtZXMgYXJlIGluIHRoZSBmb3JtYXQgb2YgTWxlXzAwMDAwMS4gIAoKIyBBbm5vdGF0aW9uCgojIyBTd2lzc3Byb3QgLyB1bmlwcm90CgpCZXN0IEJMQVNUWCBoaXRzIHRvIHN3aXNzcHJvdCB3aXRoIGEgbWF4aW11bSBldmFsdWUgb2YgLjAwMSB3ZXJlIHVzZWQgdG8gYW5ub3RhdGUgZ2VuZXMuICAKCjxwcmU+PGNvZGU+Ymxhc3R4IFwKLXF1ZXJ5IE1sZWlkeWlfMjAxNjA1MjUubnQgXCAgCi1kYiBzd2lzc3Byb3QgXCAgCi1tYXhfdGFyZ2V0X3NlcXMgMSBcICAKLW1heF9oc3BzIDEgXCAgCi1ldmFsdWUgLjAwMSBcICAKLW91dGZtdCA2IFwgIAotb3V0IG1sX3Zfc3AuYmxhc3R4IFwgIAotbnVtX3RocmVhZHMgMzIKPC9jb2RlPjwvcHJlPgoKIyMgUGZhbQogClNlcXVlbmNlcyB3ZXJlIHRyYW5zbGF0ZWQgd2l0aCBUcmFuc2RlY29kZXIgYW5kIHRoZW4gRG9tYWlucyB3ZXJlIGFzc2lnbmVkIHRvIHRyYW5zY3JpcHRzIHVzaW5nIGhtbXNjYW4gYWdhaW5zdCBQZmFtLUEuICAKPHByZT48Y29kZT5UcmFuc2RlY29kZXIuTG9uZ09yZnMgXCAgCi1TIFwKLW0gNjAgXAotdCBNbGVpZHlpXzIwMTYwNTI1LmFhLmZhCjwvY29kZT48L3ByZT4KCkFsbCBPUkZzIG9mIDYwYWEgb3IgZ3JlYXRlciB3ZXJlIHJldGFpbmVkLgoKPHByZT48Y29kZT5obW1zY2FuIFwgIAotbyBNbGVpZHlpXzIwMTYwNTI1LmFhLmZhLnBmYW0ub3V0IFwgIAotLWRvbXRibG91dCBNbGVpZHlpXzIwMTYwNTI1LmFhLmZhLnBmYW0udGFibGUgXCAgCi1FIC4wMSBcICAKLS1kb21FIC4wMSBcICAKLS1jcHUgMTYgXCAgCi4uL2RiL1BmYW0tQS5obW0gXCAgCjwvY29kZT48L3ByZT4KCgo8cHJlPjxjb2RlPgphd2sgJ3twcmludCAkNCAiXHQiICQyfScgTWxlaWR5aV8yMDE2MDUyNS5hYS5mYS5wZmFtLnRhYmxlIHwgcGVybCAtcCAtZSAncy8oTWxlX1xkKylcfC4qKFx0LispLyQxJDIvJyB8IHNvcnQgLXUgPiBtbGVpZHlpMnBmYW0udHh0CjwvY29kZT48L3ByZT4KCiMjIFNvZnR3YXJlCgoKfCBQcm9ncmFtICAgICAgfCBWZXJzaW9uICAgICAgICAgICAgICAgICAgIHwKfCAtLS0tLS0tLS0tLS0gfCAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLXwKfCBUcmluaXR5ICAgICAgfCB0cmluaXR5cm5hc2VxX3IyMDE0MDcxNyAgIHwKfCBTZXFjbGVhbiAgICAgfCBEb3dubG9hZGVkIEZlYiAyMiwgMjAxMSAgIHwKfCBCTEFTVCsgICAgICAgfCAyLjMuMCAgICAgICAgICAgICAgICAgICAgIHwKfCBUcmFuc2RlY29kZXIgfCAyLjAuMSAgICAgICAgICAgICAgICAgICAgIHwKfCBjZC1oaXQgICAgICAgfCBDRC1ISVQgdmVyc2lvbiA0LjYgICAgICAgIHwKfCBITU1lUiAgICAgICAgfCAzLjFiMiAgICAgICAgICAgICAgICAgICAgIHwKCiMjIEFjY2Vzc2lvbiBOdW1iZXJzCgpCaW9Qcm9qZWN0OiBQUkpOQTM0NDg4MCAgClRTQTogR0ZBVDAwMDAwMDAwICAKCiMjIFJlZmVyZW5jZXMKCgpDREhJVDogIAoiQ2x1c3RlcmluZyBvZiBoaWdobHkgaG9tb2xvZ291cyBzZXF1ZW5jZXMgdG8gcmVkdWNlIHRoZXNpemUgb2YgbGFyZ2UgcHJvdGVpbiBkYXRhYmFzZSIsIFdlaXpob25nIExpLCBMdWthc3ogSmFyb3N6ZXdza2kgJiBBZGFtIEdvZHppay4gQmlvaW5mb3JtYXRpY3MsICgyMDAxKSAxNzoyODItMjgzICAKICAgIkNkLWhpdDogYSBmYXN0IHByb2dyYW0gZm9yIGNsdXN0ZXJpbmcgYW5kIGNvbXBhcmluZyBsYXJnZSBzZXRzIG9mIHByb3RlaW4gb3IgbnVjbGVvdGlkZSBzZXF1ZW5jZXMiLCBXZWl6aG9uZyBMaSAmIEFkYW0gR29kemlrLiBCaW9pbmZvcm1hdGljcywgKDIwMDYpIDIyOjE2NTgtMTY1OSAgCgpITU1FUjogIApBY2NlbGVyYXRlZCBwcm9maWxlIEhNTSBzZWFyY2hlcy4gUy4gUi4gRWRkeS4gUExvUyBDb21wLiBCaW9sLiwgNzplMTAwMjE5NSwgMjAxMS4gIAoKVHJpbml0eSBhbmQgVHJhbnNkZWNvZGVyOiAgCkdyYWJoZXJyIE1HLCBIYWFzIEJKLCBZYXNzb3VyIE0sIExldmluIEpaLCBUaG9tcHNvbiBEQSwgQW1pdCBJLCBBZGljb25pcyBYLCBGYW4gTCwgUmF5Y2hvd2RodXJ5IFIsIFplbmcgUSwgQ2hlbiBaLCBNYXVjZWxpIEUsIEhhY29oZW4gTiwgR25pcmtlIEEsIFJoaW5kIE4sIGRpIFBhbG1hIEYsIEJpcnJlbiBCVywgTnVzYmF1bSBDLCBMaW5kYmxhZC1Ub2ggSywgRnJpZWRtYW4gTiwgUmVnZXYgQS4gRnVsbC1sZW5ndGggdHJhbnNjcmlwdG9tZSBhc3NlbWJseSBmcm9tIFJOQS1zZXEgZGF0YSB3aXRob3V0IGEgcmVmZXJlbmNlIGdlbm9tZS4gTmF0IEJpb3RlY2hub2wuIDIwMTEgTWF5IDE1OzI5KDcpOjY0NC01Mi4gZG9pOiAxMC4xMDM4L25idC4xODgzLiBQdWJNZWQgUE1JRDogMjE1NzI0NDAuICAKCkJMQVNUKzogIApDYW1hY2hvIEMuLCBDb3Vsb3VyaXMgRy4sIEF2YWd5YW4gVi4sIE1hIE4uLCBQYXBhZG9wb3Vsb3MgSi4sIEJlYWxlciBLLiwgJiBNYWRkZW4gVC5MLiAoMjAwOCkgIkJMQVNUKzogYXJjaGl0ZWN0dXJlIGFuZCBhcHBsaWNhdGlvbnMuIiBCTUMgQmlvaW5mb3JtYXRpY3MgMTA6NDIxLiAgCgpTZXFjbGVhbjogIApodHRwczovL3NvdXJjZWZvcmdlLm5ldC9wcm9qZWN0cy9zZXFjbGVhbi8gIAoKCgpgYGB7ciBzZXNzaW9uLCBlY2hvPUZBTFNFfQp3cml0ZUxpbmVzKGNhcHR1cmUub3V0cHV0KHNlc3Npb25JbmZvKCkpLCAic2Vzc2lvbkluZm8vdHJhbnNjcmlwdG9tZVNlc3Npb25JbmZvLnR4dCIpCmBgYAoKI1tSLXNlc3Npb24gaW5mb3JtYXRpb25dKGByIHBhc3RlMCgiaHR0cDovL2Jpb2luZm8vIiwgZ3N1YigiL2hvbWUvIiwgIn4iLCBnZXR3ZCgpKSwgIi9zZXNzaW9uSW5mby9TdG9yeVNlc3Npb25JbmZvLnR4dCIpYCkKCg==</div>
+
+<p>
+<a href="http://stowers.org"><img src="images/Stowers-logo_001.jpg"></a> 
+<a href="http://planaria.stowers.org/"><img src="http://smedgd.stowers.org/wp-content/uploads/2015/11/sllogo_whitebg_small.png"></a> 
+<a href="http://www.hhmi.org/"><img src="images/HHMI-logo-color_small.jpg"></a>
+<a href="http://www.mbl.edu/"><img src="images/marine-biological-laboratory_small.jpg"></a>
+</p>
+
+
+
+<p><a href="http://www.stowers.org/privacy-policy">Privacy Policy</a></p>
+<p><a href="http://www.stowers.org/terms">Terms of Use</a></p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

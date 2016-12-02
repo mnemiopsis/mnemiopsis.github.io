@@ -1,0 +1,35 @@
+---
+title: "The Experiment"
+bibliography: methods.bibtex
+
+---
+
+#Overview
+
+A time series from 1 hour post fertilization to 9 hours post fertilization (hpf) was collected for RNA-seq to understand the shifts occuring in the developing *M. leidyi* embryonic transcriptome.
+
+#Sample Collection
+
+Three biological replicates were collected for timepoints 1hpf, 2hpf, 3hpf, 4hpf, 5hpf, 6hpf, 7hpf, 8hpf, 9hpf. 
+
+
+#RNA-seq
+
+Library prep method and sequencing info.
+
+
+Transcriptome assembly was performed with Trinity using all of the reads for all samples and replicates.
+
+
+#Analysis
+
+Bowtie2 with default parameters was used to align reads from each developmental timepoint to the reference transcriptome  [@langmead2012fast]. Samtools quantified the alignments for each reference sequence [@li2009sequence]. Counts for trinity isoforms were summed to create a count 'per gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@love2014moderated]. For the differential expression analysis, all timepoints were contrasted with the eight hour time point. Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].
+
+All heatmaps were created using the R package pheatmap [@kolde2015pheatmap].
+
+Gene Ontology [@gene2015gene; @ashburner2000gene] terms were assigned to each *M. leidyi* gene based on homologous PFAM domains and significant Swissprot blastp hits [@madden2013blast]. These terms were used to impute functional categories of differentially expressed genes.
+
+
+
+# References
+

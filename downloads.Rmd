@@ -1,0 +1,18 @@
+---
+title: "Downloads"
+output: html_document
+---
+
+
+A page where there will be available downloads.
+
+#Trinity Assembly
+
+[Mleidyi_20160525.nt](download/Mleidyi_20160525.nt)
+
+
+#RNA-seq Data
+
+[Counts Table](output/counts.txt)
+
+[RPKM Table](output/rpkm.txt)

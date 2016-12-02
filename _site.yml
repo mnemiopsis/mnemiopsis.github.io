@@ -1,0 +1,46 @@
+name: "Mnemiopsis"
+exclude: ["download", "libs", "output", "sessionInfo"]
+output_dir: "."
+navbar:
+  title: "<em>Mnemiopsis leidyi</em>"
+  right:
+    - text: "Home"
+      href: index.html
+    - text: 'Experiment'
+      href: experiment.html
+    - text: 'Transcriptome'
+      href: transcriptome.html
+    - text: 'Quality Control'
+      menu:
+        - text: '8hpa Control First Pass'
+          href: analysis8hpaAllR.html
+        - text: '8hpa Control Second Pass'
+          href: analysis8hpa5RR.html
+        - text: '2hpa Control First Pass'
+          href: analysis2hpaAllR.html
+        - text: '2hpa Control Second Pass'
+          href: analysis2hpa2RR.html
+        - text: 'Stepwise Test'
+          href: analysisStepwise.html
+    - text: 'Differential Expression'
+      menu:
+        - text: 'Summary Analysis'
+          href: StoryOfInitialAnalysis.html
+        - text: 'Full Analysis'
+          href: InitialAnalysis.html
+    - text: 'Downloads'
+      href: downloads.html
+
+output:
+  html_document:
+    lib_dir: 'libs'
+    theme: sandstone
+    highlight: textmate
+    include:
+      after_body: footer.html
+      before_body: before_body.html
+    toc: true
+    toc_depth: 2
+    css: styles.css
+    toc_float:
+      collapsed: false

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Kirsten Gotting" />
+
+
+<title>Stepwise</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/sandstone.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="site_libs/highlight/textmate.css"
+      type="text/css" />
+<script src="site_libs/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+#rmd-source-code {
+  display: none;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 61px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+
+.section h2 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h3 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h4 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h5 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+.section h6 {
+  padding-top: 66px;
+  margin-top: -66px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: -22px; }
+.code-folding-btn.collapsed { margin-bottom: 4px; }
+</style>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<script src="site_libs/navigation-1.1/FileSaver.min.js"></script>
+<script src="site_libs/navigation-1.1/sourceembed.js"></script>
+<script>
+$(document).ready(function () {
+  window.initializeSourceEmbed("analysisStepwise.Rmd");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.9em;
+  padding-left: 5px;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+  padding-left: 10px;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html"><em>Mnemiopsis leidyi</em></a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="experiment.html">Experiment</a>
+</li>
+<li>
+  <a href="transcriptome.html">Transcriptome</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Quality Control
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="analysis8hpaAllR.html">8hpa Control First Pass</a>
+    </li>
+    <li>
+      <a href="analysis8hpa5RR.html">8hpa Control Second Pass</a>
+    </li>
+    <li>
+      <a href="analysis2hpaAllR.html">2hpa Control First Pass</a>
+    </li>
+    <li>
+      <a href="analysis2hpa2RR.html">2hpa Control Second Pass</a>
+    </li>
+    <li>
+      <a href="analysisStepwise.html">Stepwise Test</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Differential Expression
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="StoryOfInitialAnalysis.html">Summary Analysis</a>
+    </li>
+    <li>
+      <a href="InitialAnalysis.html">Full Analysis</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="downloads.html">Downloads</a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Stepwise</h1>
+<h4 class="author"><em>Kirsten Gotting</em></h4>
+
+</div>
+
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>Analyze the Mnemiopsis data with the new filtered transcriptome that Eric generated.</p>
+</div>
+<div id="spearman-correlation" class="section level1">
+<h1>Spearman Correlation</h1>
+<p>The following plots the spearman correlation of the RPM (reads per million) for all genes that have an average RPM ≥ 1.</p>
+<p>Spearman’s rank correlation coefficient is a nonparametric measure of rank correlation, recommended for data that doesn’t necessarily come from a bivariate normal distribution.</p>
+<p><img src="figures/spearman_correlationStepwise-1.png" width="672" /></p>
+</div>
+<div id="pairwise-pca" class="section level1">
+<h1>Pairwise PCA</h1>
+<p><img src="figures/PCAStepwise-1.png" width="960" /></p>
+</div>
+<div id="ma-and-volcano-plots" class="section level1 tabset">
+<h1>MA and Volcano plots</h1>
+<p>MA plot: The log2 fold change(M) plotted against the log2 average(A) of the normalized read count for each gene. Significantly differentially expressed genes are plotted in red.</p>
+<p>Volcano plot: The log2 fold change(M) plotted against the -log10 (eg. 1e^-10 = 10) of the adjusted p-value.</p>
+<div id="hpf2hpf" class="section level2">
+<h2>1hpf/2hpf</h2>
+<p><img src="figures/plotmavolStepwise-1.png" width="1920" /></p>
+</div>
+<div id="hpf3hpf" class="section level2">
+<h2>2hpf/3hpf</h2>
+<p><img src="figures/plotmavolStepwise-2.png" width="1920" /></p>
+</div>
+<div id="hpf4hpf" class="section level2">
+<h2>3hpf/4hpf</h2>
+<p><img src="figures/plotmavolStepwise-3.png" width="1920" /></p>
+</div>
+<div id="hpf5hpf" class="section level2">
+<h2>4hpf/5hpf</h2>
+<p><img src="figures/plotmavolStepwise-4.png" width="1920" /></p>
+</div>
+<div id="hpf6hpf" class="section level2">
+<h2>5hpf/6hpf</h2>
+<p><img src="figures/plotmavolStepwise-5.png" width="1920" /></p>
+</div>
+<div id="hpf7hpf" class="section level2">
+<h2>6hpf/7hpf</h2>
+<p><img src="figures/plotmavolStepwise-6.png" width="1920" /></p>
+</div>
+<div id="hpf8hpf" class="section level2">
+<h2>7hpf/8hpf</h2>
+<p><img src="figures/plotmavolStepwise-7.png" width="1920" /></p>
+</div>
+</div>
+<div id="heatmaps" class="section level1">
+<h1>Heatmaps</h1>
+<p>The first heatmap was made by hierarchically clustering the euclidean distances of the log2 fold change for genes with p-values less than 0.001 at any time point.</p>
+<p>The second heatmap uses the same hierarchical method to cluster timepoints.</p>
+<p><img src="figures/pairwiseHeatmapsStepwise-1.png" width="672" /><img src="figures/pairwiseHeatmapsStepwise-2.png" width="672" /></p>
+</div>
+<div id="r-session-information" class="section level1">
+<h1><a href="http://bioinfo/~klg/projects/Mnemiopsis/website/sessionInfo/StorySessionInfo.txt">R-session information</a></h1>
+</div>
+
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiU3RlcHdpc2UiIAphdXRob3I6ICJLaXJzdGVuIEdvdHRpbmciCm91dHB1dDoKICBodG1sX2RvY3VtZW50OgogICAgICBjb2RlX2Rvd25sb2FkOiB0cnVlCi0tLQoKCmBgYHtyIGluaXRpYWxpemVEYXRhU3RlcHdpc2UsIGVjaG8gPSBGQUxTRSwgcmVzdWx0cyA9ICJoaWRlIiwgbWVzc2FnZSA9IEZBTFNFLCBlcnJvciA9IEZBTFNFLCB3YXJuaW5nID0gRkFMU0UsIGNhY2hlID0gRkFMU0V9CgojIyB1c2VyIGlucHV0IHRvICdERVNlcTJBbGwuUmRhdGEnCgpsb2FkKCIuL291dHB1dC9ERVNlcTJBbGxTdGVwd2lzZS5SZGF0YSIpCnNldHdkKCIuLyIpCgojIyBGaXJzdCBsaXN0IHRoZSBSIGxpYnJhcmllcyBJIHdhbnQgdG8gdXNlCmxpYnJhcmllcyAgICAgICAgPC0gYygiREVTZXEyIiwgImdwbG90cyIsICJSQ29sb3JCcmV3ZXIiLCAna25pdHInLCAnZ3JpZCcsICdncmlkRXh0cmEnLCAidGlkeXZlcnNlIiwgJ2tpUnN0ZW4nKQoKIyMgTm93IHJlYWQgaW4gdGhlIGxpYnJhcmllcwpsYXBwbHkobGlicmFyaWVzLCBmdW5jdGlvbih4KXsKICAgIGxpYnJhcnkoeCwgY2hhcmFjdGVyLm9ubHkgPSBUUlVFLCBxdWlldGx5ID0gVFJVRSkKICAgIH0pCgojIyBJbml0aWFsaXplIGtuaXRyIG9wdGlvbnMKb3B0c19jaHVuayRzZXQoZWNobz1GQUxTRSwgbWVzc2FnZT1GQUxTRSwgcmVzdWx0cz0iaGlkZSIsIGZpZy5rZWVwPSJhbGwiLCB3YXJuaW5nPUZBTFNFLCBlcnJvcj1GQUxTRSwgZmlnLnBhdGg9ImZpZ3VyZXMvIiwgY2FjaGUgPSBUUlVFKQpvcHRzX2tuaXQkc2V0KHJvb3QuZGlyID0gIi4vIikKCgpgYGAKCgoKCgojIE92ZXJ2aWV3CgpBbmFseXplIHRoZSBNbmVtaW9wc2lzIGRhdGEgd2l0aCB0aGUgbmV3IGZpbHRlcmVkIHRyYW5zY3JpcHRvbWUgdGhhdCBFcmljIGdlbmVyYXRlZC4KCgojU3BlYXJtYW4gQ29ycmVsYXRpb24KCgpUaGUgZm9sbG93aW5nIHBsb3RzIHRoZSBzcGVhcm1hbiBjb3JyZWxhdGlvbiBvZiB0aGUgUlBNIChyZWFkcyBwZXIgbWlsbGlvbikgZm9yIGFsbCBnZW5lcyB0aGF0IGhhdmUgYW4gYXZlcmFnZSBSUE0gJiM4ODA1OyAxLgoKU3BlYXJtYW4ncyByYW5rIGNvcnJlbGF0aW9uIGNvZWZmaWNpZW50IGlzIGEgbm9ucGFyYW1ldHJpYyBtZWFzdXJlIG9mIHJhbmsgY29ycmVsYXRpb24sIHJlY29tbWVuZGVkIGZvciBkYXRhIHRoYXQgZG9lc24ndCBuZWNlc3NhcmlseSBjb21lIGZyb20gYSBiaXZhcmlhdGUgbm9ybWFsIGRpc3RyaWJ1dGlvbi4KCgpgYGB7ciBzcGVhcm1hbl9jb3JyZWxhdGlvblN0ZXB3aXNlLCBmaWcuY2FwID0gIiJ9CgojIyBNYWtlIGEgc3BlYXJtYW4gcGxvdAoKCmZpbHRlcmVkUlBNcyA8LSBub3JtQ291bnRzICU+JSBncm91cF9ieShJRCkgJT4lIG11dGF0ZShycG1GbGFnID0gaWZlbHNlKChtZWFuKHJwbSkgPj0gMSksIHllcyA9ICd5ZXMnLCBubyA9ICdubycpKSAlPiUgdW5ncm91cCgpICU+JQogICAgZmlsdGVyKHJwbUZsYWcgPT0gJ3llcycpICU+JSBzZWxlY3QoSUQsIFNhbXBsZSwgcnBtKSAlPiUgc3ByZWFkKFNhbXBsZSwgcnBtKQoKCgpycG1maWx0ICAgICAgICA8LSBkYXRhLmZyYW1lKHNlbGVjdChmaWx0ZXJlZFJQTXMsIC1JRCksIHJvdy5uYW1lcyA9IGZpbHRlcmVkUlBNcyRJRCwgY2hlY2submFtZXMgPSBGQUxTRSkKc3BlYXJtYW4gICAgICAgPC0gZGF0YS5mcmFtZShjb3IocnBtZmlsdCwgbWV0aG9kID0gJ3NwZWFybWFuJyksIGNoZWNrLm5hbWVzID0gRkFMU0UpCnNwZWFybWFuJElEICAgIDwtIHJvd25hbWVzKHNwZWFybWFuKQpzcGVhcm1hblRpZHkgICA8LSBzcGVhcm1hbiAlPiUgZ2F0aGVyKFNhbXBsZSwgY29ycmVsYXRpb24sIC1JRCkKCiMjIGFuZCBwbG90IGl0IQoKZ2dwbG90KGRhdGEgPSBzcGVhcm1hblRpZHksIGFlcyh4ID0gSUQsIHkgPSBTYW1wbGUsIGZpbGwgPSBjb3JyZWxhdGlvbikpICsgZ2VvbV90aWxlKCkgKwogICAgc2NhbGVfZmlsbF9ncmFkaWVudDIobG93ID0gInllbGxvdyIsIG1pZCA9ICd3aGl0ZScsIGhpZ2ggPSAicHVycGxlNCIsIG1pZHBvaW50ID0gMC44LCBsaW1pdCA9IGMoMCwxKSkgKwogICAgICAgIGdndGl0bGUoJ1NwZWFybWFuIENvcnJlbGF0aW9uIG9mIFNhbXBsZXMnKSArIHhsYWIoJycpICsgeWxhYignJykgKwogICAgICAgICAgICB0aGVtZShheGlzLnRleHQueCA9IGVsZW1lbnRfdGV4dChhbmdsZSA9IDkwLCBoanVzdCA9IDEpKQpgYGAKCgojIFBhaXJ3aXNlIFBDQQoKYGBge3IgUENBU3RlcHdpc2UsIGZpZy5mdWxsd2lkdGggPSBUUlVFLCBmaWcud2lkdGggPSAxMCwgZmlnLmhlaWdodCA9IDEwfQoKcGNhc19kYXRhIDwtIGxhcHBseShjb250cmFzdF9uYW1lcywgZnVuY3Rpb24oeCl7CiAgICB5IDwtIHBsb3RQQ0EocmxkX2FsbFtbeF1dLCByZXR1cm5EYXRhID0gVFJVRSwgbnRvcCA9IDEwMDAwKQogICAgeSRJRCA8LSB4CiAgICB5Cn0pCgpwY2FfZGF0YSA8LSBiaW5kX3Jvd3MocGNhc19kYXRhKQoKZ2dwbG90KGRhdGEgPSBwY2FfZGF0YSwgYWVzKHggPSBQQzEsIHkgPSBQQzIsIGxhYmVsID0gbmFtZSwgY29sb3VyID0gZmFjdG9yKGNvbmRpdGlvbikpKSArCiAgICAgICAgICAgIGdlb21fcG9pbnQoc2l6ZSA9IDMpICsgdGhlbWVfYncoKSArIGdlb21fdGV4dChoanVzdCA9IDAsIHZqdXN0ID0gLTAuNCkgKwogICAgICAgICAgICB4bGFiKCJQQyAxIikgKyB5bGFiKCJQQyAyIikgKyAKICAgICAgICAgICAgc2NhbGVfeF9jb250aW51b3VzKGV4cGFuZCA9IGMoMC45OCwgMCkpICArCiAgICAgICAgICAgIHNjYWxlX3lfY29udGludW91cyhleHBhbmQgPSBjKDAuMiwgMCkpICsKICAgICAgICAgICAgdGhlbWUobGVnZW5kLnBvc2l0aW9uPSJub25lIikgKwogICAgICAgICAgICBmYWNldF93cmFwKH4gSUQsIHNjYWxlcyA9ICJmcmVlIikKCmBgYAoKCgojIE1BIGFuZCBWb2xjYW5vIHBsb3RzIHsudGFic2V0fQoKTUEgcGxvdDogVGhlIGxvZzIgZm9sZCBjaGFuZ2UoTSkgcGxvdHRlZCBhZ2FpbnN0IHRoZSBsb2cyIGF2ZXJhZ2UoQSkgb2YgdGhlIG5vcm1hbGl6ZWQgcmVhZCBjb3VudCBmb3IgZWFjaCBnZW5lLiAgU2lnbmlmaWNhbnRseSBkaWZmZXJlbnRpYWxseSBleHByZXNzZWQgZ2VuZXMgYXJlIHBsb3R0ZWQgaW4gcmVkLgoKVm9sY2FubyBwbG90OiBUaGUgbG9nMiBmb2xkIGNoYW5nZShNKSBwbG90dGVkIGFnYWluc3QgdGhlIC1sb2cxMCAoZWcuIDFlXi0xMCA9IDEwKSBvZiB0aGUgYWRqdXN0ZWQgcC12YWx1ZS4KCmBgYHtyIG1hdm9sU3RlcHdpc2V9CgoKeCA8LSBjb250cmFzdF9uYW1lc1tbMV1dCgpwbG90cyA8LSBsYXBwbHkoY29udHJhc3RfbmFtZXMsIGZ1bmN0aW9uKHgpewogICAgZGYgICAgICA8LSBhbGxfcmVzdWx0c190aWR5REYgJT4lIGZpbHRlcihjb250cmFzdElEID09IHgpICU+JSBzcHJlYWQoZGVhX0lELCBkZWFfVmFsdWUpICU+JSBtdXRhdGUobG9nYmFzZU1lYW4gPSBsb2coYmFzZU1lYW4pKQogICAgcHZhbCAgICA8LSBhcy5udW1lcmljKHB2YWwpCiAgICBpZihpcy5udWxsKGRmKSl7CiAgICAgICAgbWVzc2FnZShwYXN0ZTAoIlB2YWx1ZSB0b28gc3RyaW5nZW50IGZvciAiLCBjb250cmFzdCwgIi4gTUEvVm9sY2FubyBwbG90IG9tbWl0ZWQuXG4iKSkKICAgIH0gZWxzZSB7CiAgICAgICAgcHZhbCAgICAgICAgICAgICAgICAgIDwtIGFzLm51bWVyaWMocHZhbCkKICAgICAgICBsb3dlcl9sYWJlbCAgICAgICAgICAgPC0gcGFzdGUwKCJHZW5lcyB3aXRoIENvdW50czogIiwgbnJvdyhkZiksICJcblVwOiAiLCNjcmVhdGUgdGhlIGxhYmVsIG9mIHRoZSBsZWdlbmQKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5yb3coc3Vic2V0KGRmLCBsb2cyRm9sZENoYW5nZSA+IDAgJiBwYWRqIDwgcHZhbCkpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIiwgRG93bjogIiwgbnJvdyhzdWJzZXQoZGYsIGxvZzJGb2xkQ2hhbmdlIDwgMCAmIHBhZGogPCBwdmFsKSksICJcbiIpCiAgCiAgICAgICAgZGYgPC0gZGYgJT4lIG11dGF0ZShzaWduaWZpY2FuY2VfZ3JvdXAgPSBpZmVsc2UocGFkaiA8PSBwdmFsLCB5ZXMgPSAneWVzJywgbm8gPSAnbm8nKSkKICAKICAgICAgICBsZWdlbmRfbGFiZWxzICAgICAgICA8LSBjKHBhc3RlMCgicGFkaiA+ICIsIHB2YWwsIjogIiwgbnJvdyhmaWx0ZXIoZGYsIHNpZ25pZmljYW5jZV9ncm91cCA9PSAnbm8nKSkpLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcGFzdGUwKCJwYWRqIDwgIiwgcHZhbCwiOiAiLCBucm93KGZpbHRlcihkZiwgc2lnbmlmaWNhbmNlX2dyb3VwID09ICd5ZXMnKSkpKQogICAgICAgIG1hLnBsb3QgPC0gICBnZ3Bsb3QoZGYsIGFlcyh4ID0gbG9nYmFzZU1lYW4sIHkgPSBsb2cyRm9sZENoYW5nZSwgZ3JvdXAgPSBzaWduaWZpY2FuY2VfZ3JvdXAsIGNvbG91ciA9IHNpZ25pZmljYW5jZV9ncm91cCkpICsKICAgICAgICAgICAgICAgICAgICAgIGdlb21fcG9pbnQoKSArIHRoZW1lX2J3KCkgKwogICAgICAgICAgICAgICAgICAgICAgZ2d0aXRsZSgnTUEgcGxvdCcpICsgc2NhbGVfeF9jb250aW51b3VzKGV4cGFuZCA9IGMoMCwgMCkpICsKICAgICAgICAgICAgICAgICAgICAgIHhsYWIoIkEgPSBNZWFuIG9mIGxvZzIoQWJ1bmRhbmNlKSIpICsgeWxhYigiTSA9IGxvZzIoRm9sZCBDaGFuZ2UpIikgKwogICAgICAgICAgICAgICAgICAgICAgc2NhbGVfY29sb3JfbWFudWFsKHZhbHVlcyA9IGMoImdyYXkyNCIsICJyZWQiKSwgbmFtZSA9IGxvd2VyX2xhYmVsLCBicmVha3MgPSBjKCJncmF5MjQiLCAicmVkIiksIGxhYmVscyA9IGxlZ2VuZF9sYWJlbHMpICsKICAgICAgICAgICAgICAgICAgICAgIGdlb21faGxpbmUoYWVzKHlpbnRlcmNlcHQgPSAwKSwgY29sb3VyID0gImJsYWNrIiwgbGluZXR5cGUgPSAiZGFzaGVkIikgKwogICAgICAgICAgICAgICAgICAgICAgZ2VvbV9obGluZShhZXMoeWludGVyY2VwdCA9IDEpLCBjb2xvdXIgPSAiZ3JheTY2IiwgbGluZXR5cGUgPSAiZGFzaGVkIikgKwogICAgICAgICAgICAgICAgICAgICAgZ2VvbV9obGluZShhZXMoeWludGVyY2VwdCA9IC0xKSwgY29sb3VyID0gImdyYXk2NiIsIGxpbmV0eXBlPSJkYXNoZWQiKSArCiAgICAgICAgICAgICAgICAgICAgICB0aGVtZShsZWdlbmQucG9zaXRpb24gPSAnbm9uZScsIHRleHQgPSBlbGVtZW50X3RleHQoc2l6ZT0yMCkpCiAgICAgICAgdm9sY2Fuby5wbG90IDwtICAgZ2dwbG90KGRmLCBhZXMoeCA9IGxvZzJGb2xkQ2hhbmdlLCB5ID0gLWxvZyhwYWRqLCBiYXNlID0gYygxMCkpLCBncm91cCA9IHNpZ25pZmljYW5jZV9ncm91cCwgY29sb3VyID0gc2lnbmlmaWNhbmNlX2dyb3VwKSkgKwogICAgICAgICAgICAgICAgICAgICAgICAgIGdlb21fcG9pbnQoKSArCiAgICAgICAgICAgICAgICAgICAgICAgICAgZ2d0aXRsZSgnVm9sY2FubyBwbG90JykgKwogICAgICAgICAgICAgICAgICAgICAgICAgIHhsYWIoIk0gPSBsb2cyKEZvbGQgQ2hhbmdlKSIpICsgeWxhYigiLWxvZzEwKEFkanVzdGVkIFAtVmFsdWUpIikgKyAKICAgICAgICAgICAgICAgICAgICAgICAgICBzY2FsZV9jb2xvcl9tYW51YWwodmFsdWVzID0gYygiZ3JheTI0IiwgInJlZCIpLCBsYWJlbHMgPSBsZWdlbmRfbGFiZWxzLCBuYW1lPWxvd2VyX2xhYmVsKSArCiAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlbWVfYncoKSArCiAgICAgICAgICAgICAgICAgICAgICAgICAgdGhlbWUobGVnZW5kLnRpdGxlID0gZWxlbWVudF90ZXh0KHNpemUgPSAxNiwgZmFjZSA9ICJib2xkIiksIGxlZ2VuZC50ZXh0ID0gZWxlbWVudF90ZXh0KHNpemUgPSAyMCksICB0ZXh0ID0gZWxlbWVudF90ZXh0KHNpemU9MjApKQogICAgIGdyb2IgPC0gICBtYXJyYW5nZUdyb2IobGlzdChtYS5wbG90LAogICAgICAgICAgICAgICAgICAgICAgICAgIHZvbGNhbm8ucGxvdCksCiAgICAgICAgICAgICAgICAgICAgICAgICAgdG9wID0gdGV4dEdyb2IoeCwgZ3AgPSBncGFyKGZvbnNpemUgPSA0MCwgZm9udGZhY2UgPSAnYm9sZCcsIGNleCA9IDIpLCBoanVzdCA9IDEuOCksCiAgICAgICAgICAgICAgICAgICAgICAgICAgbnJvdyA9IDEsIG5jb2wgPSAyLAogICAgICAgICAgICAgICAgICAgICAgICAgIHdpZHRocz1jKDAuMzgsIDAuNjIpKQogICAgIGludmlzaWJsZShncm9iKQogICAgfQp9KQoKbmFtZXMocGxvdHMpIDwtIGNvbnRyYXN0X25hbWVzCmBgYAoKYGBge3IgcGxvdG1hdm9sU3RlcHdpc2UsIGZpZy5rZWVwID0gImFsbCIsIGZpZy5oZWlnaHQgPSAxMCwgZmlnLndpZHRoID0gMjAsIGVjaG89RkFMU0UsIHJlc3VsdHM9J2FzaXMnfQoKZm9yKGkgaW4gY29udHJhc3RfbmFtZXMpewogIGNhdChwYXN0ZTAoIlxuXG5cbiMjIiwgaSwgIlxuIikpCiAgcHJpbnQocGxvdHNbW2ldXSkKfQoKYGBgCgoKI0hlYXRtYXBzCgoKVGhlIGZpcnN0IGhlYXRtYXAgd2FzIG1hZGUgYnkgaGllcmFyY2hpY2FsbHkgY2x1c3RlcmluZyB0aGUgZXVjbGlkZWFuIGRpc3RhbmNlcyBvZiB0aGUgbG9nMiBmb2xkIGNoYW5nZSBmb3IgZ2VuZXMgd2l0aCBwLXZhbHVlcyBsZXNzIHRoYW4gYHIgcHZhbGAgYXQgYW55IHRpbWUgcG9pbnQuCgpUaGUgc2Vjb25kIGhlYXRtYXAgdXNlcyB0aGUgc2FtZSBoaWVyYXJjaGljYWwgbWV0aG9kIHRvIGNsdXN0ZXIgdGltZXBvaW50cy4KCgpgYGB7ciBwYWlyd2lzZUhlYXRtYXBzU3RlcHdpc2UsIHJlc3VsdHMgPSAiaGlkZSIsIGZpZy5jYXAgPSAiIiwgZmlnLmtlZXAgPSAiaGlnaCJ9CgoKbGZjX3RhYmxlIDwtIGFsbF9yZXN1bHRzX3RpZHlERiAlPiUKICBtdXRhdGUoc2lnbmlmaWNhbnQgPSBpZmVsc2UoZGVhX0lEID09ICdwYWRqJyAmIGRlYV9WYWx1ZSA8PSBwdmFsLCB5ZXMgPSBUUlVFLCBubyA9IEZBTFNFKSkgJT4lICMgbGFiZWwgYWxsIHNpZ25pZmljYW50IGdlbmVzCiAgZ3JvdXBfYnkoY29udHJhc3RJRCwgR2VuZSkgJT4lICMgbGFiZWwgdGhlICMgb2YgdGltZXMgZ2VuZXMgdGhhdCBhcmUgc2lnbmlmaWNhbnQKICB1bmdyb3VwKCkgICU+JQogIGdyb3VwX2J5KEdlbmUpICU+JQogIGZpbHRlcihhbnkoc2lnbmlmaWNhbnQpLCBkZWFfSUQgPT0gJ2xvZzJGb2xkQ2hhbmdlJykgJT4lCiAgc2VsZWN0KC1zaWduaWZpY2FudCkgJT4lIHVuaXRlKGNvbG5hbWUsIGNvbnRyYXN0SUQsIGRlYV9JRCkgJT4lICMgbWFrZSB0aGUgdGFibGUgd2lkZSBmb3JtYXR0ZWQKICBzcHJlYWQoY29sbmFtZSwgZGVhX1ZhbHVlKQoKCiMjIGNyZWF0ZSBhIHRhYmxlIG9mIHNpZ25pZmljYW50IGdlbmVzIHdpdGggdGhlIGNsdXN0ZXIgY29sb3JzIGFzc2lnbmVkCgpzaWduLnRhYmxlIDwtIGFsbF9yZXN1bHRzX3RpZHlERiAgJT4lIAogIHNwcmVhZChrZXkgPSBkZWFfSUQsIHZhbHVlID0gZGVhX1ZhbHVlKSAgJT4lIAogIGZpbHRlcihHZW5lICVpbiUgbGZjX3RhYmxlJEdlbmUpICU+JQogIGdyb3VwX2J5KGNvbnRyYXN0SUQsIEdlbmUpICU+JSAKICBtdXRhdGUoc29ydGJ5ID0gLWxvZyhwYWRqLCBiYXNlID0gYygxMCkpKnNpZ24obG9nMkZvbGRDaGFuZ2UpKSAlPiUgCiAgdW5ncm91cCgpICU+JSBnYXRoZXIoZGVhX0lELCBkZWFfVmFsdWUsIC1HZW5lLCAtY29udHJhc3RJRCkgJT4lIAogIHVuaXRlKGlkQWxsLCBjb250cmFzdElELCBkZWFfSUQpICU+JSBzcHJlYWQoa2V5ID0gaWRBbGwsIHZhbHVlID0gZGVhX1ZhbHVlKSAlPiUKICBkcGx5cjo6cmVuYW1lKCdUcmFuc2NyaXB0SUQnID0gR2VuZSkKCgpoZWF0bWFwLmlucHV0LnRhYmxlICAgICAgICAgICA8LSBkYXRhLmZyYW1lKGxmY190YWJsZSkKcm93bmFtZXMoaGVhdG1hcC5pbnB1dC50YWJsZSkgPC0gbGZjX3RhYmxlJEdlbmUKaGVhdG1hcC5pbnB1dC50YWJsZSRHZW5lICAgICAgPC0gTlVMTApoZWF0bWFwLmlucHV0LnRhYmxlICAgICAgICAgICA8LSBuYS5vbWl0KGRhdGEubWF0cml4KGhlYXRtYXAuaW5wdXQudGFibGVbd2hpY2gocm93bmFtZXMoaGVhdG1hcC5pbnB1dC50YWJsZSkgJWluJSBzaWduLnRhYmxlJFRyYW5zY3JpcHRJRCksIF0pKQpjb2xuYW1lcyhoZWF0bWFwLmlucHV0LnRhYmxlKSA8LSBjb250cmFzdF9uYW1lcwoKCnByZXR0eWNvbG9ycyAgPC0gY29sb3JSYW1wUGFsZXR0ZShyZXYoYnJld2VyLnBhbCgxMSwgIlNwZWN0cmFsIikpKQpjb2wuYnJlYWtzICAgIDwtIHNlcSgtMywgMywgbGVuZ3RoLm91dCA9IG5jb2woaGVhdG1hcC5pbnB1dC50YWJsZSkpCgoKIyMgTWFrZSB0d28gaGVhdG1hcHMsIGFsbG93IGN1c3RpbWl6YWJsZSBncmFwaGluZwoKaHIgPC0gaGNsdXN0KGRpc3QoaGVhdG1hcC5pbnB1dC50YWJsZSksIG1ldGhvZD0iY29tcGxldGUiKSAjIENyZWF0ZXMgcm93IGRlbmRyb2dyYW0KaGMgPC0gaGNsdXN0KGRpc3QodChoZWF0bWFwLmlucHV0LnRhYmxlKSksIG1ldGhvZD0iY29tcGxldGUiKSAjIENyZWF0ZXMgY29sdW1uIGRlbmRyb2dyYW0KCm15Y2xyICAgICA8LSBjdXRyZWUoaHIsIGsgPSA3KSAjIHNldCB1cCB3aGVyZSB0aGUgZ3JvdXBzIHdpbGwgYmUsIGNoYW5nZSAnaycgZm9yIG1vcmUgb3IgbGVzcyBncm91cHMKbXljb2xyICAgIDwtIGMoIkdyZWVuIiwgIlJlZCIsICJCbHVlIiwgIk9yYW5nZSIsICJQdXJwbGUiLCAiUGluayIsICJZZWxsb3ciKSAjIG11c3QgYmUgdGhlIHNhbWUgbGVuZ3RoIGFzICdrJwpteWNvbHIgICAgPC0gbXljb2xyW2FzLnZlY3RvcihteWNscildICMgcHVsbCBvdXQgdGhlIGNvbG9ycyBhc3NpZ25lZCB0byBlYWNoIGdlbmUKbXljb2xyLmRmIDwtIGRhdGEuZnJhbWUoQ2x1c3Rlcl9Db2xvciA9IG15Y29sciwgVHJhbnNjcmlwdElEID0gbmFtZXMobXljbHIpKSAjIGNyZWF0ZSBhIGRhdGEgZnJhbWUgb2YgdGhlIGNsdXN0ZXIgY29sb3IgZWFjaCBnZW5lIGJlbG9uZ3MgdG8KCgppZihuY29sKGhlYXRtYXAuaW5wdXQudGFibGUpID4gMSl7CiAgICAjIyBNYWtlIGEgaGVhdG1hcCB3aXRob3V0IGEgY29sdW1uIGRlbmRyb2dyYW0KICAgIGNvbC5icmVha3MgICAgPC0gc2VxKC0zLCAzLCBsZW5ndGgub3V0ID0gbmNvbChoZWF0bWFwLmlucHV0LnRhYmxlKSkKICAgIGhlYXRtYXAgICAgICAgPC0gaGVhdG1hcC4yKGhlYXRtYXAuaW5wdXQudGFibGUsIG1hcmdpbiA9IGMoMTUsNSksIGNvbCA9IHByZXR0eWNvbG9ycywgZGVuZHJvZ3JhbSA9ICdyb3cnLCB0cmFjZSA9IGMoIm5vbmUiKSwgUm93dj1hcy5kZW5kcm9ncmFtKGhyKSwgQ29sdiA9IE5BLCBsYWJSb3cgPSBGQUxTRSwga2V5ID0gVFJVRSwgYnJlYWtzID0gY29sLmJyZWFrcywga2V5LnlsYWIgPSAiR2VuZSBDb3VudCIsIGtleS54bGFiID0gImxvZzJGb2xkQ2hhbmdlIiwgY2V4Q29sID0gMS41LCBSb3dTaWRlQ29sb3JzID0gbXljb2xyKQogICAgdGl0bGUobWFpbiA9IHBhc3RlMCgiQ2x1c3RlcmluZyBvZiAiLCBucm93KGhlYXRtYXAuaW5wdXQudGFibGUpLCIgR2VuZXMiKSwgbGluZSA9IDApCiAgICBwYXIoY2V4Lm1haW49MC45KQp9CgoKaWYobmNvbChoZWF0bWFwLmlucHV0LnRhYmxlKSA+IDIpIHsKICAgIGsgPC0gaWZlbHNlKG5jb2woaGVhdG1hcC5pbnB1dC50YWJsZSA8IDUpLCAzLCA1KQogICAgbXljbGMgIDwtIGN1dHJlZShoYywgayA9IGspICMgY3JlYXRlIGdyb3VwaW5ncyBmb3IgdGhlIGNvbHVtbiBkZW5kcm9ncmFtCiAgICBteWNvbGMgPC0gYygiR3JlZW4iLCAiUmVkIiwgIkJsdWUiLCAiT3JhbmdlIiwgIlB1cnBsZSIpCiAgICBteWNvbGMgPC0gbXljb2xjW2FzLnZlY3RvcihteWNsYyldCiAgICAjIyBNYWtlIGEgaGVhdG1hcCBvZiB0aGUgbG9nZm9sZCBjaGFuZ2VzIHdpdGggY29sdW1uIGRlbmRyb2dyYW0uCiAgICBoZWF0bWFwICAgICAgIDwtIGhlYXRtYXAuMihoZWF0bWFwLmlucHV0LnRhYmxlLCBtYXJnaW4gPSBjKDE1LDUpLCBkZW5kcm9ncmFtID0gJ2JvdGgnLCBSb3d2ID0gYXMuZGVuZHJvZ3JhbShociksIENvbHYgPSBhcy5kZW5kcm9ncmFtKGhjKSwgY29sID0gcHJldHR5Y29sb3JzLCB0cmFjZSA9IGMoIm5vbmUiKSwgbGFiUm93ID0gRkFMU0UsIGtleSA9IFRSVUUsIGJyZWFrcyA9IGNvbC5icmVha3MsIG1haW4gPSBwYXN0ZTAoIkNsdXN0ZXJpbmcgb2YgVGltZXBvaW50cyBvbiAiLCBucm93KGhlYXRtYXAuaW5wdXQudGFibGUpLCIgR2VuZXMiKSwga2V5LnlsYWIgPSAiR2VuZSBDb3VudCIsIGtleS54bGFiID0gImxvZzJGb2xkQ2hhbmdlIiwgY2V4Q29sID0gMS41LCBSb3dTaWRlQ29sb3JzID0gbXljb2xyLCBDb2xTaWRlQ29sb3JzID0gbXljb2xjKQp9CgpgYGAKCgoKYGBge3Igc2Vzc2lvblN0ZXB3aXNlLCBlY2hvPUZBTFNFfQp3cml0ZUxpbmVzKGNhcHR1cmUub3V0cHV0KHNlc3Npb25JbmZvKCkpLCAic2Vzc2lvbkluZm8vYW5hbHlzaXNTdGVwd2lzZVNlc3Npb25JbmZvLnR4dCIpCmBgYAoKI1tSLXNlc3Npb24gaW5mb3JtYXRpb25dKGByIHBhc3RlMCgiaHR0cDovL2Jpb2luZm8vIiwgZ3N1YigiL2hvbWUvIiwgIn4iLCBnZXR3ZCgpKSwgIi9zZXNzaW9uSW5mby9TdG9yeVNlc3Npb25JbmZvLnR4dCIpYCkKCg==</div>
+
+<p>
+<a href="http://stowers.org"><img src="images/Stowers-logo_001.jpg"></a> 
+<a href="http://planaria.stowers.org/"><img src="http://smedgd.stowers.org/wp-content/uploads/2015/11/sllogo_whitebg_small.png"></a> 
+<a href="http://www.hhmi.org/"><img src="images/HHMI-logo-color_small.jpg"></a>
+<a href="http://www.mbl.edu/"><img src="images/marine-biological-laboratory_small.jpg"></a>
+</p>
+
+
+
+<p><a href="http://www.stowers.org/privacy-policy">Privacy Policy</a></p>
+<p><a href="http://www.stowers.org/terms">Terms of Use</a></p>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
