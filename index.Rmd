@@ -36,12 +36,26 @@ Movies:
 
 Images of the embryogenesis:
 
-```{r, echo = FALSE, results = 'asis'}
+<img src="images/1Ct-2006-timelapse-0037_t007.jpg" style="width:204px;height:128px;">
+<img src="images/2Ct-2006-timelapse-0037_t063.jpg" style="width:204px;height:128px;">
+<img src="images/3Ct-2006-timelapse-0037_t113.jpg" style="width:204px;height:128px;">
+
+
+<img src="images/4Ct-2006-timelapse-0037_t246.jpg" style="width:204px;height:128px;">
+<img src="images/5Ct-2006-timelapse-0037_t372.jpg" style="width:204px;height:128px;">
+<img src="images/6Ct-2006-timelapse-0037_t449.jpg" style="width:204px;height:128px;">
+
+
+<img src="images/7Ct-2006-timelapse-0037_t575.jpg" style="width:204px;height:128px;">
+<img src="images/8Ct-2006-timelapse-0038_t60.jpg" style="width:204px;height:128px;">
+<img src="images/9Ct-2006-timelapse-0049_t41.jpg" style="width:204px;height:128px;">
+
+```{r, eval = FALSE, echo = FALSE, results = 'asis'}
 
 files <- list.files('images', pattern = 'timelapse', full.names = TRUE)
 
 for (i in files){
-  cat(paste0('<img src="', i, '" style="width:304px;height:228px;">\n\n'))
+  cat(paste0('<img src="', i, '" style="width:204px;height:128px;">\n'))
 }
 
 ```
