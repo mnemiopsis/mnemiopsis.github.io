@@ -41,6 +41,9 @@ pval <- as.numeric(pval)
 Analyze the Mnemiopsis data with the new filtered transcriptome that Eric generated.
 
 
+Replicates removed for not passing quality control tests: '7hpf_2012_N1', '2hpf_2012_N6'
+
+
 #Spearman Correlation
 
 

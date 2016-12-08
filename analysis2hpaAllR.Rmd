@@ -204,7 +204,7 @@ col.breaks    <- seq(-3, 3, length.out = ncol(heatmap.input.table))
 
 
 ## Make two heatmaps, allow custimizable graphing
-
+if(nrow(heatmap.input.table) >2){
 hr <- hclust(dist(heatmap.input.table), method="complete") # Creates row dendrogram
 hc <- hclust(dist(t(heatmap.input.table)), method="complete") # Creates column dendrogram
 
@@ -230,7 +230,7 @@ if(ncol(heatmap.input.table) > 2) {
     mycolc <- mycolc[as.vector(myclc)]
     ## Make a heatmap of the logfold changes with column dendrogram.
     heatmap       <- heatmap.2(heatmap.input.table, margin = c(15,5), dendrogram = 'both', Rowv = as.dendrogram(hr), Colv = as.dendrogram(hc), col = prettycolors, trace = c("none"), labRow = FALSE, key = TRUE, breaks = col.breaks, main = paste0("Clustering of Timepoints on ", nrow(heatmap.input.table)," Genes"), key.ylab = "Gene Count", key.xlab = "log2FoldChange", cexCol = 1.5, RowSideColors = mycolr, ColSideColors = mycolc)
-}
+}}
 
 ```
 

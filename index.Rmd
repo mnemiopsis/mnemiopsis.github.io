@@ -6,7 +6,44 @@ date: "`r Sys.Date()`"
 
 ...Under Construction
 
-For information about the exeriment click [here](experiment.html).
+
+<iframe src="https://player.vimeo.com/video/194724472" width="640" height="640" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+<p><a href="https://vimeo.com/194724472">Adult Ctenophore, video by Alejandro Sánchez Alvarado</a>
+
+
+
+
+
+<iframe src="https://player.vimeo.com/video/194724462" width="640" height="483" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+<p><a href="https://vimeo.com/194724462">Ctenophore Early Embryonic Development, video by Carine Stapel</a>
+
+
+
+
+
+
+
+Images of the embryogenesis:
+
+<img src="images/1Ct-2006-timelapse-0037_t007.jpg" style="width:210px;height:128px;">
+<img src="images/2Ct-2006-timelapse-0037_t063.jpg" style="width:210px;height:128px;">
+<img src="images/3Ct-2006-timelapse-0037_t113.jpg" style="width:210px;height:128px;">
+
+
+
+<img src="images/4Ct-2006-timelapse-0037_t246.jpg" style="width:210px;height:128px;">
+<img src="images/5Ct-2006-timelapse-0037_t372.jpg" style="width:210px;height:128px;">
+<img src="images/6Ct-2006-timelapse-0037_t449.jpg" style="width:210px;height:128px;">
+
+
+
+<img src="images/7Ct-2006-timelapse-0037_t575.jpg" style="width:210px;height:128px;">
+<img src="images/8Ct-2006-timelapse-0038_t60.jpg" style="width:210px;height:128px;">
+<img src="images/9Ct-2006-timelapse-0049_t41.jpg" style="width:210px;height:128px;">
+
+
+
+For information about the experiment click [here](experiment.html).
 
 
 For how we built the transcriptome click [here](transcriptome.html).
@@ -30,32 +67,13 @@ For our differential expression analysis click [here](StoryOfInitialAnalysis.htm
 To download our data click [here](downloads.html).
 
 
-Movies:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/k3RAbGtSxIc" frameborder="0" allowfullscreen></iframe>
-
-Images of the embryogenesis:
-
-<img src="images/1Ct-2006-timelapse-0037_t007.jpg" style="width:204px;height:128px;">
-<img src="images/2Ct-2006-timelapse-0037_t063.jpg" style="width:204px;height:128px;">
-<img src="images/3Ct-2006-timelapse-0037_t113.jpg" style="width:204px;height:128px;">
-
-
-<img src="images/4Ct-2006-timelapse-0037_t246.jpg" style="width:204px;height:128px;">
-<img src="images/5Ct-2006-timelapse-0037_t372.jpg" style="width:204px;height:128px;">
-<img src="images/6Ct-2006-timelapse-0037_t449.jpg" style="width:204px;height:128px;">
-
-
-<img src="images/7Ct-2006-timelapse-0037_t575.jpg" style="width:204px;height:128px;">
-<img src="images/8Ct-2006-timelapse-0038_t60.jpg" style="width:204px;height:128px;">
-<img src="images/9Ct-2006-timelapse-0049_t41.jpg" style="width:204px;height:128px;">
 
 ```{r, eval = FALSE, echo = FALSE, results = 'asis'}
 
 files <- list.files('images', pattern = 'timelapse', full.names = TRUE)
 
 for (i in files){
-  cat(paste0('<img src="', i, '" style="width:204px;height:128px;">\n'))
+  cat(paste0('<img src="', i, '" style="width:210px;height:128px;">\n'))
 }
 
 ```

@@ -32,30 +32,6 @@ lapply(libraries, function(x){
 opts_chunk$set(echo=FALSE, message=FALSE, results="hide", fig.keep="all", warning=FALSE, error=FALSE, fig.path="figures/", cache = TRUE)
 opts_knit$set(root.dir = "./")
 
-# library(htmltools)
-
-# side <- function(text) {
-#   div(class = "sidenote-right", p(text))
-# }
-# 
-# text <- "Spearman's rank correlation coefficient is a nonparametric measure of rank correlation, recommended for data that doesn't necessarily come from a bivariate normal distribution."
-# 
-# strText <- strsplit(text, "")[[1]]
-# 
-# char = 0 
-# for(i in strText){
-#   string = ''
-#   if(i in c(LETTERS, tolower(LETTERS), ".", "'")){
-#     char = char + 1
-#     string = paste0(string, i)
-#   } if (i in
-#     
-#   }
-#   
-# ```{r, results = 'asis'}
-# side("Spearman's rank correlation")
-# ```
-
 ```
 
 

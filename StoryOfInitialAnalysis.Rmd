@@ -631,7 +631,8 @@ all_associated <- rbind(data.frame(go_id = GOs, associated = GOs, id = 'original
 all_associated$Term <- sapply(all_associated$go_id, function(x){simpleCap(Term(GOTERM[[x]]))})
 
 
-sign <- bind_rows(expr8, expr2) %>% left_join(annotationDF, ., by = 'Gene') %>%
+sign <- bind_rows(expr8, expr2) %>% 
+  left_join(annotationDF, ., by = 'Gene') %>%
   left_join(., ml, by = c("Gene", "sp_desc")) %>%
   filter(dea_ID == 'log2FoldChange') %>%
   spread(contrastID, dea_Value) %>%
@@ -729,7 +730,7 @@ ggplot(gene_bar, aes(x = Term, y = num_rep)) + geom_bar(stat="identity", fill = 
 
 ```{r, results='asis'}
 
-DT::datatable(dplyr::select(dea_go1, ID, Term),
+DT::datatable(dplyr::select(dea_go1, Gene, sp_desc, Term, Cluster),
                caption = 'Table 3: Mnemiopsis Genes Annotated to the GO terms in Table 2.')
 
 

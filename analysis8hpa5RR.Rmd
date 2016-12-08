@@ -39,6 +39,7 @@ opts_knit$set(root.dir = "./")
 
 Analyze the Mnemiopsis data with the new filtered transcriptome that Eric generated.
 
+Replicated removed: '7hpf_2012_N1', '7hpf_2013_17', '2hpf_2012_N6', '1hpf_2012_N7', '6hpf_2012_N2'
 
 #Spearman Correlation
 
