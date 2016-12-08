@@ -1,1 +1,0 @@
-../../DEA/analysis_2hpaAll/output/all_genes_expressionTidy.txt
