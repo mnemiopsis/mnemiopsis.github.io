@@ -30,11 +30,41 @@ Transcriptome assembly was performed with Trinity using all of the reads for all
 
 #Analysis
 
-Bowtie2 with default parameters was used to align reads from each developmental timepoint to the reference transcriptome  [@langmead2012fast]. Samtools quantified the alignments for each reference sequence [@li2009sequence]. Counts for trinity isoforms were summed to create a count 'per gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@love2014moderated]. For the differential expression analysis, all timepoints were contrasted with the eight hour time point. Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].
+Bowtie2 with the --norc parameter was used to align reads from each developmental timepoint to the reference transcriptome  [@langmead2012fast]. Samtools quantified the alignments for each reference sequence [@li2009sequence]. 
+
+##FASTQ processing commands
+
+
+```{r SampleAlignmentCommands, engine='sh', eval = FALSE}
+
+index='/path/to/transcriptome_index'
+fastq='/path/to/fastq_file'
+
+bowtie2 -p 8 --norc -x ${index} ${fastq}  2>>alignment_report.txt | \
+
+samtools view -@ 1 -b - | samtools sort -T ${fastq}_temp -o ${fastq}.bam -O bam -@ 1 - ;
+
+samtools index ${fastq}.bam;
+
+samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
+
+```
+
+##Analysis in R
+
+
+
+Counts for trinity isoforms were summed to create a count 'per gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@love2014moderated]. 
+
+For the differential expression analysis, all timepoints were contrasted with the eight hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’), and the two hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’). 
 
 All heatmaps were created using the R package pheatmap [@kolde2015pheatmap].
 
 Gene Ontology [@gene2015gene; @ashburner2000gene] terms were assigned to each *M. leidyi* gene based on homologous PFAM domains and significant Swissprot blastp hits [@madden2013blast]. These terms were used to impute functional categories of differentially expressed genes.
+
+
+##GEO submission
+Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].
 
 
 
