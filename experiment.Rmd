@@ -3,7 +3,6 @@ title: "The Experiment"
 bibliography: methods.bibtex
 output:
   html_document:
-      code_download: true
       toc: true
       toc_depth: 2
       toc_float:
@@ -16,11 +15,24 @@ output:
 A time series from 1 hour post fertilization to 9 hours post fertilization (hpf) was collected for RNA-seq to understand the shifts occuring in the developing *M. leidyi* embryonic transcriptome.
 
 #Sample Collection
+Animals were collected in the wild at various locations around Woods Hole, MA either by net or by a plastic beaker attached to a pole for gently scooping the animals from the water as pictured:
+
+
+<img src="methods/Cteno_catch.jpg" style="width:300px;height:400px;">
+
+
 
 Three biological replicates were collected for timepoints 1hpf, 2hpf, 3hpf, 4hpf, 5hpf, 6hpf, 7hpf, 8hpf, 9hpf. 
 
 
 #RNA-seq
+
+Total RNA was harvested according to 
+
+[this protocol](methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf)
+
+mRNA was extracted from the total RNA in to parts: [part 1](methods/Dynabead-protocol-Mnemiopsis-partI.pdf) and [part2](methods/Dynabead-protocol-Mnemiopsis-partII.pdf)
+
 
 Library prep method and sequencing info.
 
@@ -50,7 +62,7 @@ samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 
 ```
 
-##Analysis in R
+##R Analysis
 
 
 

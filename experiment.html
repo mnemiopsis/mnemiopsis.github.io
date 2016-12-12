@@ -68,9 +68,6 @@ h6 {
 .table th:not([align]) {
   text-align: left;
 }
-#rmd-source-code {
-  display: none;
-}
 </style>
 
 <link rel="stylesheet" href="styles.css" type="text/css" />
@@ -166,18 +163,6 @@ $(document).ready(function () {
 </script>
 
 <!-- code folding -->
-<style type="text/css">
-.code-folding-btn { margin-bottom: -22px; }
-.code-folding-btn.collapsed { margin-bottom: 4px; }
-</style>
-<script src="site_libs/navigation-1.1/codefolding.js"></script>
-<script src="site_libs/navigation-1.1/FileSaver.min.js"></script>
-<script src="site_libs/navigation-1.1/sourceembed.js"></script>
-<script>
-$(document).ready(function () {
-  window.initializeSourceEmbed("experiment.Rmd");
-});
-</script>
 
 
 
@@ -356,15 +341,7 @@ div.tocify {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-
 <div class="fluid-row" id="header">
-
-<div class="btn-group pull-right">
-<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
-<ul class="dropdown-menu" style="min-width: 50px;">
-<li><a id="rmd-download-source" href="#">Download Rmd</a></li>
-</ul>
-</div>
 
 
 
@@ -379,10 +356,15 @@ div.tocify {
 </div>
 <div id="sample-collection" class="section level1">
 <h1>Sample Collection</h1>
+<p>Animals were collected in the wild at various locations around Woods Hole, MA either by net or by a plastic beaker attached to a pole for gently scooping the animals from the water as pictured:</p>
+<p><img src="methods/Cteno_catch.jpg" style="width:300px;height:400px;"></p>
 <p>Three biological replicates were collected for timepoints 1hpf, 2hpf, 3hpf, 4hpf, 5hpf, 6hpf, 7hpf, 8hpf, 9hpf.</p>
 </div>
 <div id="rna-seq" class="section level1">
 <h1>RNA-seq</h1>
+<p>Total RNA was harvested according to</p>
+<p><a href="methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf">this protocol</a></p>
+<p>mRNA was extracted from the total RNA in to parts: <a href="methods/Dynabead-protocol-Mnemiopsis-partI.pdf">part 1</a> and <a href="methods/Dynabead-protocol-Mnemiopsis-partII.pdf">part2</a></p>
 <p>Library prep method and sequencing info.</p>
 <p>Transcriptome assembly was performed with Trinity using all of the reads for all samples and replicates.</p>
 </div>
@@ -404,8 +386,8 @@ samtools index ${fastq}.bam;
 samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 </code></pre>
 </div>
-<div id="analysis-in-r" class="section level2">
-<h2>Analysis in R</h2>
+<div id="r-analysis" class="section level2">
+<h2>R Analysis</h2>
 <p>Counts for trinity isoforms were summed to create a count ‘per gene’, which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts <span class="citation">(Love, Huber, and Anders 2014)</span>.</p>
 <p>For the differential expression analysis, all timepoints were contrasted with the eight hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’), and the two hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’).</p>
 <p>All heatmaps were created using the R package pheatmap <span class="citation">(Kolde 2015)</span>.</p>
@@ -443,7 +425,6 @@ samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 </div>
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiVGhlIEV4cGVyaW1lbnQiCmJpYmxpb2dyYXBoeTogbWV0aG9kcy5iaWJ0ZXgKb3V0cHV0OgogIGh0bWxfZG9jdW1lbnQ6CiAgICAgIGNvZGVfZG93bmxvYWQ6IHRydWUKICAgICAgdG9jOiB0cnVlCiAgICAgIHRvY19kZXB0aDogMgogICAgICB0b2NfZmxvYXQ6CiAgICAgICAgY29sbGFwc2VkOiBmYWxzZQoKLS0tCgojT3ZlcnZpZXcKCkEgdGltZSBzZXJpZXMgZnJvbSAxIGhvdXIgcG9zdCBmZXJ0aWxpemF0aW9uIHRvIDkgaG91cnMgcG9zdCBmZXJ0aWxpemF0aW9uIChocGYpIHdhcyBjb2xsZWN0ZWQgZm9yIFJOQS1zZXEgdG8gdW5kZXJzdGFuZCB0aGUgc2hpZnRzIG9jY3VyaW5nIGluIHRoZSBkZXZlbG9waW5nICpNLiBsZWlkeWkqIGVtYnJ5b25pYyB0cmFuc2NyaXB0b21lLgoKI1NhbXBsZSBDb2xsZWN0aW9uCgpUaHJlZSBiaW9sb2dpY2FsIHJlcGxpY2F0ZXMgd2VyZSBjb2xsZWN0ZWQgZm9yIHRpbWVwb2ludHMgMWhwZiwgMmhwZiwgM2hwZiwgNGhwZiwgNWhwZiwgNmhwZiwgN2hwZiwgOGhwZiwgOWhwZi4gCgoKI1JOQS1zZXEKCkxpYnJhcnkgcHJlcCBtZXRob2QgYW5kIHNlcXVlbmNpbmcgaW5mby4KCgpUcmFuc2NyaXB0b21lIGFzc2VtYmx5IHdhcyBwZXJmb3JtZWQgd2l0aCBUcmluaXR5IHVzaW5nIGFsbCBvZiB0aGUgcmVhZHMgZm9yIGFsbCBzYW1wbGVzIGFuZCByZXBsaWNhdGVzLgoKCiNBbmFseXNpcwoKQm93dGllMiB3aXRoIHRoZSAtLW5vcmMgcGFyYW1ldGVyIHdhcyB1c2VkIHRvIGFsaWduIHJlYWRzIGZyb20gZWFjaCBkZXZlbG9wbWVudGFsIHRpbWVwb2ludCB0byB0aGUgcmVmZXJlbmNlIHRyYW5zY3JpcHRvbWUgIFtAbGFuZ21lYWQyMDEyZmFzdF0uIFNhbXRvb2xzIHF1YW50aWZpZWQgdGhlIGFsaWdubWVudHMgZm9yIGVhY2ggcmVmZXJlbmNlIHNlcXVlbmNlIFtAbGkyMDA5c2VxdWVuY2VdLiAKCiMjRkFTVFEgcHJvY2Vzc2luZyBjb21tYW5kcwoKCmBgYHtyIFNhbXBsZUFsaWdubWVudENvbW1hbmRzLCBlbmdpbmU9J3NoJywgZXZhbCA9IEZBTFNFfQoKaW5kZXg9Jy9wYXRoL3RvL3RyYW5zY3JpcHRvbWVfaW5kZXgnCmZhc3RxPScvcGF0aC90by9mYXN0cV9maWxlJwoKYm93dGllMiAtcCA4IC0tbm9yYyAteCAke2luZGV4fSAke2Zhc3RxfSAgMj4+YWxpZ25tZW50X3JlcG9ydC50eHQgfCBcCgpzYW10b29scyB2aWV3IC1AIDEgLWIgLSB8IHNhbXRvb2xzIHNvcnQgLVQgJHtmYXN0cX1fdGVtcCAtbyAke2Zhc3RxfS5iYW0gLU8gYmFtIC1AIDEgLSA7CgpzYW10b29scyBpbmRleCAke2Zhc3RxfS5iYW07CgpzYW10b29scyBpZHhzdGF0cyAke2Zhc3RxfS5iYW0gfCBzb3J0IC1vICR7ZmFzcX0uaWR4c3RhdHMgL2Rldi9zdGRpbgoKYGBgCgojI0FuYWx5c2lzIGluIFIKCgoKQ291bnRzIGZvciB0cmluaXR5IGlzb2Zvcm1zIHdlcmUgc3VtbWVkIHRvIGNyZWF0ZSBhIGNvdW50ICdwZXIgZ2VuZScsIHdoaWNoIHNlcnZlZCBhcyBpbnB1dCB0byB0aGUgUiBwYWNrYWdlIERFU2VxMiBmb3IgZGlmZmVyZW50aWFsIGV4cHJlc3Npb24gYW5hbHlzaXMgYW5kIG5vcm1hbGl6YXRpb24gb2YgdGhlIHJlYWQgY291bnRzIFtAbG92ZTIwMTRtb2RlcmF0ZWRdLiAKCkZvciB0aGUgZGlmZmVyZW50aWFsIGV4cHJlc3Npb24gYW5hbHlzaXMsIGFsbCB0aW1lcG9pbnRzIHdlcmUgY29udHJhc3RlZCB3aXRoIHRoZSBlaWdodCBob3VyIHRpbWUgcG9pbnQgKG9taXR0aW5nIHRoZSBmb2xsb3dpbmcgc2FtcGxlcyBmb3IgZmFpbGluZyBxdWFsaXR5IGNvbnRyb2wgdGVzdHM6IDdocGZfMjAxMl9OMeKAmSwg4oCYN2hwZl8yMDEzXzE34oCZLCDigJgyaHBmXzIwMTJfTjbigJksIOKAmDFocGZfMjAxMl9ON+KAmSwg4oCYNmhwZl8yMDEyX04y4oCZKSwgYW5kIHRoZSB0d28gaG91ciB0aW1lIHBvaW50IChvbWl0dGluZyB0aGUgZm9sbG93aW5nIHNhbXBsZXMgZm9yIGZhaWxpbmcgcXVhbGl0eSBjb250cm9sIHRlc3RzOiA3aHBmXzIwMTJfTjHigJksIOKAmDJocGZfMjAxMl9ONuKAmSkuIAoKQWxsIGhlYXRtYXBzIHdlcmUgY3JlYXRlZCB1c2luZyB0aGUgUiBwYWNrYWdlIHBoZWF0bWFwIFtAa29sZGUyMDE1cGhlYXRtYXBdLgoKR2VuZSBPbnRvbG9neSBbQGdlbmUyMDE1Z2VuZTsgQGFzaGJ1cm5lcjIwMDBnZW5lXSB0ZXJtcyB3ZXJlIGFzc2lnbmVkIHRvIGVhY2ggKk0uIGxlaWR5aSogZ2VuZSBiYXNlZCBvbiBob21vbG9nb3VzIFBGQU0gZG9tYWlucyBhbmQgc2lnbmlmaWNhbnQgU3dpc3Nwcm90IGJsYXN0cCBoaXRzIFtAbWFkZGVuMjAxM2JsYXN0XS4gVGhlc2UgdGVybXMgd2VyZSB1c2VkIHRvIGltcHV0ZSBmdW5jdGlvbmFsIGNhdGVnb3JpZXMgb2YgZGlmZmVyZW50aWFsbHkgZXhwcmVzc2VkIGdlbmVzLgoKCiMjR0VPIHN1Ym1pc3Npb24KR2VuZSBleHByZXNzaW9uIGRhdGEgaGFzIGJlZW4gZGVwb3NpdGVkIGluIHRoZSBHZW5lIEV4cHJlc3Npb24gT21uaWJ1cyAoR0VPKSB1bmRlciB0aGUgYWNjZXNzaW9uIFtdLgoKCgojIFJlZmVyZW5jZXMKCg==</div>
 
 <p>
 <a href="http://stowers.org"><img src="images/Stowers-logo_001.jpg" style="width:200px;height:75px;"></a> 
