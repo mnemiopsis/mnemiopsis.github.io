@@ -1,6 +1,5 @@
-*_cache
-*Rdata
-.Rproj.user
 output
-all_genes
 .Rproj.user
+*_cache
+*.Rdata
+all_genes*
