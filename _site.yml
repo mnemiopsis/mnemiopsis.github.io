@@ -23,11 +23,7 @@ navbar:
         - text: 'Stepwise Test'
           href: analysisStepwise.html
     - text: 'Differential Expression'
-      menu:
-        - text: 'Summary Analysis'
-          href: StoryOfInitialAnalysis.html
-        - text: 'Full Analysis'
-          href: InitialAnalysis.html
+      href: StoryOfInitialAnalysis.html
     - text: 'Downloads'
       href: downloads.html
 

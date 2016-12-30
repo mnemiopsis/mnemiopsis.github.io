@@ -116,9 +116,6 @@ rpkm <- rpkms %>%
 expr <- data.table::fread('output/all_genes_expressionTidy8hpa.txt', data.table = FALSE)
 expr8 <- na.omit(expr)
 
-
-
-
 sig <- expr8  %>% 
   mutate(id1 = ifelse(dea_ID == 'padj' & dea_Value <= 1e-5, yes = TRUE, no = FALSE)) %>%
   mutate(id2 = ifelse(dea_ID == 'log2FoldChange' & dea_Value >= 0.5, yes = TRUE, no = FALSE)) %>%
@@ -166,10 +163,15 @@ In Heatmap A, I highlight the first four time points (1hpf - 4hpf) with the 8hpf
 
 mlhere <- ml %>% dplyr::select(Gene, sp_desc) %>% distinct()
 
-lfc <- data.frame(sign2 %>% filter(dea_ID == 'log2FoldChange') %>% dplyr::select(-dea_ID) %>% spread(contrastID, dea_Value), check.names = FALSE)
+lfc <- data.frame(sign2 %>% filter(dea_ID == 'log2FoldChange') %>% 
+                     dplyr::select(-dea_ID) %>% 
+                     spread(contrastID, dea_Value), check.names = FALSE)
 lfc2 <- left_join(lfc, mlhere)
-
-lfc <- data.frame(sign8 %>% filter(dea_ID == 'log2FoldChange') %>% dplyr::select(-dea_ID) %>% spread(contrastID, dea_Value), check.names = FALSE)
+ 
+lfc <- data.frame(sign8 %>% filter(dea_ID == 'log2FoldChange') %>% 
+                     dplyr::select(-dea_ID) %>% 
+                     spread(contrastID, dea_Value), check.names = FALSE)
+ 
 lfc8 <- left_join(lfc, mlhere)
 
 
@@ -180,20 +182,18 @@ sigExpr <- bind_rows(expr2, expr8) %>%
 
 
 
-lfc <- left_join(sigExpr, mlhere)
+lfc_annot <- left_join(sigExpr, mlhere)
 
-lfc <- na.omit(lfc[ ,c("Gene", "1hpf/8hpf", "2hpf/8hpf", "3hpf/8hpf", "4hpf/8hpf", "5hpf/8hpf", "6hpf/8hpf", "7hpf/8hpf", "1hpf/2hpf", "3hpf/2hpf", "4hpf/2hpf", "5hpf/2hpf", "6hpf/2hpf", "7hpf/2hpf", "8hpf/2hpf")])
+lfc <- na.omit(lfc_annot[ ,c("Gene", "1hpf/8hpf", "2hpf/8hpf", "3hpf/8hpf", "4hpf/8hpf", "5hpf/8hpf", "6hpf/8hpf", "7hpf/8hpf", "1hpf/2hpf", "3hpf/2hpf", "4hpf/2hpf", "5hpf/2hpf", "6hpf/2hpf", "7hpf/2hpf", "8hpf/2hpf")])
 
 rownames(lfc)      <- lfc$Gene
-lfc$sp_desc        <- NULL
 lfc$Gene           <- NULL
-
 
 
 lfc_heat <- make_pheatmap_df(lfc, max = 3, min = -3)
 
 
-hr  <- hclust(dist(lfc), method = 'complete')
+hr  <- hclust(dist(lfc), method = 'ward.D')
 
 
 mycl            <- cutree(hr, k = 2)
@@ -213,12 +213,12 @@ annotation[which(rownames(annotation) %in% lfc8$Gene), 'Significant'] <- '8hpf C
 
 
 
-annotation$Cluster    <- as.factor(annotation$Cluster)
+annotation$Cluster     <- as.factor(annotation$Cluster)
 annotation$Significant <- as.factor(annotation$Significant)
-up.colors            <- c('green', 'purple')
-names(up.colors)     <- clusters
-Significant           <- c('pink', 'turquoise')
-names(Significant)    <- c('8hpf Control', '2hpf Control')
+up.colors              <- c('green', 'purple')
+names(up.colors)       <- clusters
+Significant            <- c('pink', 'turquoise')
+names(Significant)     <- c('8hpf Control', '2hpf Control')
 ann.colors             <- list(Cluster = up.colors, Significant = Significant)
 
 
@@ -243,7 +243,17 @@ annotationDF <- left_join(annotationDF, mlhere)
 
 
 
-pheatmap(lfc_heat[ ,keep_cols], show_rownames = FALSE, cluster_cols = FALSE, cluster_rows = hr, main = paste0('Heatmap A: Clustering of the log2 Fold Changes of ', nrow(lfc), ' Genes'), border_color = NA, annotation_row=annotation, annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE, gaps_col = c(4), labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"))
+pheatmap(lfc_heat[, keep_cols], show_rownames = FALSE,
+         cluster_cols = FALSE, 
+         cluster_rows = hr, 
+         main = paste0('Heatmap A: Clustering of the log2 Fold Changes of ', nrow(lfc), ' Genes'), 
+         border_color = NA, 
+         annotation_row = annotation, 
+         annotation_colors = ann.colors, 
+         annotation_col = annot_column,
+         annotation_names_col = FALSE, 
+         gaps_col = c(4), 
+         labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"))
 
 
 ```
@@ -269,7 +279,7 @@ rpkm_sig$Gene      <- NULL
 rpkm_sig_heat <- make_pheatmap_df(rpkm_sig, max = 2, min = -2)
 
 
-hr  <- hclust(dist(rpkm_sig), method = 'complete')
+hr  <- hclust(dist(rpkm_sig), method = 'ward.D')
 
 
 mycl            <- cutree(hr, k = 2)
@@ -536,9 +546,8 @@ lfc <- signtf %>% filter(dea_ID == 'log2FoldChange') %>%
   spread(contrastID, dea_Value) %>%
   distinct()
 
-tflfc <- inner_join(tf_factor, lfc) %>% dplyr::select(-sp_id, -sp_desc, -sp_evalue, -go_all, -Pfam)
-
-
+tflfc <- inner_join(tf_factor, lfc) %>% 
+  dplyr::select(-sp_id, -sp_desc, -sp_evalue, -go_all, -Pfam)
 
 
 tfl <- data.frame(tflfc %>% dplyr::select(-Gene), check.names = FALSE)
@@ -548,21 +557,26 @@ tfl$ID <- NULL
 
 tfl_heat <- make_pheatmap_df(tfl, min = -2, max = 2)
 
-
-
-#pheatmap(tfl_heat, cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(tfl), main = paste0('Clustering of ', nrow(tfl), ' Genes'), border_color = NA, cellwidth = 15, cellheight = 10)
-
-
-annotation_sub <- left_join(tflfc, annotationDF, by = 'Gene') %>% dplyr::select(Cluster, ID)
+annotation_sub           <- left_join(tflfc, annotationDF, by = 'Gene') %>% dplyr::select(Cluster, ID)
 rownames(annotation_sub) <- annotation_sub$ID
 annotation_sub$ID <- NULL
   
-pheatmap(tfl_heat[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(tfl), 
-           main = paste0('Clustering of ', nrow(tfl), ' Genes'), border_color = NA, cellwidth = 15, cellheight = 10, 
-           annotation_row = annotation_sub, gaps_col = c(4),
-           labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"), 
-           annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE,
-           legend_labels = c(seq(-3, 3), "title\n"))
+
+pheatmap(tfl_heat[, keep_cols],  
+         cluster_cols = FALSE, 
+         clustering_method = 'ward.D', 
+         clustering_distance_rows = dist(tfl), 
+         main = paste0('Clustering of ', nrow(tfl), ' Genes'), 
+         border_color = NA, 
+         cellwidth = 15, 
+         cellheight = 10, 
+         annotation_row = annotation_sub, 
+         gaps_col = c(4),
+         labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"), 
+         annotation_colors = ann.colors, 
+         annotation_col = annot_column, 
+         annotation_names_col = FALSE,
+         legend_labels = c(seq(-3, 3), "title\n"))
 
 
 ```
@@ -683,18 +697,37 @@ for(x in heatmaps){
   if(nrow(df) > 25){
       h <- nrow(df)*10.3
       filename <- paste0('summary_figures/', gsub(" ", "", x[[1]]), 'significantlyExpressedHeatmap.png')
-      pheatmap(df[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(df_new), 
-               main = x[[3]], border_color = NA, cellwidth = 15, cellheight = 10, 
-               annotation_row = annotation_sub, gaps_col = c(4),
+      pheatmap(df[, keep_cols],  
+               cluster_cols = FALSE, 
+               clustering_method = 'ward.D', 
+               clustering_distance_rows = dist(df_new), 
+               main = x[[3]],
+               border_color = NA, 
+               cellwidth = 15, 
+               cellheight = 10, 
+               annotation_row = annotation_sub, 
+               gaps_col = c(4),
                labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"),
-               annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE, filename = filename)
+               annotation_colors = ann.colors, 
+               annotation_col = annot_column, 
+               annotation_names_col = FALSE, 
+               filename = filename)
       cat(paste0("#####[Link to ", x[[1]]," Heatmap](http://bioinfo/home/klg/projects/Mnemiopsis/website/", filename, ")<br><br><br>"))
     } else {
-  pheatmap(df[, keep_cols],  cluster_cols = FALSE, clustering_method = 'complete', clustering_distance_rows = dist(df_new), 
-           main = x[[3]], border_color = NA, cellwidth = 15, cellheight = 10, 
-           annotation_row = annotation_sub, gaps_col = c(4),
+  pheatmap(df[, keep_cols],  
+           cluster_cols = FALSE, 
+           clustering_method = 'ward.D', 
+           clustering_distance_rows = dist(df_new), 
+           main = x[[3]], 
+           border_color = NA, 
+           cellwidth = 15, 
+           cellheight = 10, 
+           annotation_row = annotation_sub, 
+           gaps_col = c(4),
            labels_col = c("1hpf", "2hpf", "3hpf", "4hpf","5hpf", "6hpf", "7hpf", "8hpf"), 
-           annotation_colors = ann.colors, annotation_col = annot_column, annotation_names_col = FALSE,
+           annotation_colors = ann.colors, 
+           annotation_col = annot_column, 
+           annotation_names_col = FALSE,
            legend_labels = c(seq(-3, 3), "title\n"))
     }
   }
