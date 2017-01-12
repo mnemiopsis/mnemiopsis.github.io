@@ -177,7 +177,7 @@ $(document).ready(function ()  {
 
     // establish options
     var options = {
-      selectors: "h1,h2",
+      selectors: "h1,h2,h3",
       theme: "bootstrap3",
       context: '.toc-content',
       hashGenerator: function (text) {
@@ -340,27 +340,28 @@ div.tocify {
 
 <div id="overview" class="section level1">
 <h1>Overview</h1>
-<p>A time series from 1 hour post fertilization to 9 hours post fertilization (hpf) was collected for RNA-seq to understand the shifts occuring in the developing <em>M. leidyi</em> embryonic transcriptome.</p>
+<p>A time series from 1 hour to 9 hours post-fertilization (hpf) was collected for RNA-seq by students of the <a href="http://www.mbl.edu/education/courses/embryology/">MBL Embryology Course</a> to understand the shifts in gene expression occuring in the early embryo of <em>M. leidyi</em>.</p>
 </div>
 <div id="sample-collection" class="section level1">
 <h1>Sample Collection</h1>
 <p>Animals were collected in the wild at various locations around Woods Hole, MA either by net or by a plastic beaker attached to a pole for gently scooping the animals from the water as pictured:</p>
 <p><img src="methods/Cteno_catch.jpg" style="width:300px;height:400px;"></p>
-<p>Three biological replicates were collected for timepoints 1hpf, 2hpf, 3hpf, 4hpf, 5hpf, 6hpf, 7hpf, 8hpf, 9hpf.</p>
+<p>Multiple biological replicates were collected for timepoints 1, 2, 3, 4, 5, 6, 7, 8, and 9 hpf.</p>
 </div>
-<div id="rna-seq" class="section level1">
-<h1>RNA-seq</h1>
-<p>Total RNA was harvested according to</p>
-<p><a href="methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf">this protocol</a></p>
-<p>mRNA was extracted from the total RNA in to parts: <a href="methods/Dynabead-protocol-Mnemiopsis-partI.pdf">part 1</a> and <a href="methods/Dynabead-protocol-Mnemiopsis-partII.pdf">part2</a></p>
-<p>Library prep method and sequencing info.</p>
-<p>Transcriptome assembly was performed with Trinity using all of the reads for all samples and replicates.</p>
+<div id="rna-extraction-and-assembly" class="section level1">
+<h1>RNA Extraction and Assembly</h1>
+<ul>
+<li><p>Total RNA was harvested according to <a href="methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf">this protocol</a></p></li>
+<li><p>mRNA was extracted from the total RNA in to parts: <a href="methods/Dynabead-protocol-Mnemiopsis-partI.pdf">part 1</a> and <a href="methods/Dynabead-protocol-Mnemiopsis-partII.pdf">part2</a></p></li>
+<li><p>Library prep method and sequencing info.</p></li>
+<li><p>Transcriptome assembly was performed with <a href="transcriptome.html">this protocol</a>.</p></li>
+</ul>
 </div>
-<div id="analysis" class="section level1">
-<h1>Analysis</h1>
-<p>Bowtie2 with the –norc parameter was used to align reads from each developmental timepoint to the reference transcriptome <span class="citation">(Langmead and Salzberg 2012)</span>. Samtools quantified the alignments for each reference sequence <span class="citation">(Li et al. 2009)</span>.</p>
-<div id="fastq-processing-commands" class="section level2">
-<h2>FASTQ processing commands</h2>
+<div id="sequence-analysis" class="section level1">
+<h1>Sequence Analysis</h1>
+<p>RNA sequence reads from each developmental timepoint were aligned to the assembled transcriptome, followed by quantification and expression analysis.</p>
+<div id="fastq-processing-commands" class="section level3">
+<h3>FASTQ processing commands</h3>
 <pre class="sh"><code>
 index=&#39;/path/to/transcriptome_index&#39;
 fastq=&#39;/path/to/fastq_file&#39;
@@ -373,42 +374,40 @@ samtools index ${fastq}.bam;
 
 samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 </code></pre>
+<p><span class="citation">(Langmead and Salzberg 2012)</span>, <span class="citation">(Li et al. 2009)</span></p>
 </div>
-<div id="r-analysis" class="section level2">
-<h2>R Analysis</h2>
-<p>Counts for trinity isoforms were summed to create a count ‘per gene’, which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts <span class="citation">(Love, Huber, and Anders 2014)</span>.</p>
-<p>For the differential expression analysis, all timepoints were contrasted with the eight hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’), and the two hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’).</p>
+<div id="r-analyses" class="section level3">
+<h3>R Analyses</h3>
+<p>Counts for isoforms were summed to create a count per ‘gene’, which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts <span class="citation">(Love, Huber, and Anders 2014)</span>.</p>
+<p>For the differential expression analysis, all timepoints were compared against the eight hour time point (8 hpf). The following samples were omitted for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’. Additionally, all timepoints were compared against the two hour time point (2 hpf) omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’.</p>
 <p>All heatmaps were created using the R package pheatmap <span class="citation">(Kolde 2015)</span>.</p>
-<p>Gene Ontology <span class="citation">(Consortium and others 2015; Ashburner et al. 2000)</span> terms were assigned to each <em>M. leidyi</em> gene based on homologous PFAM domains and significant Swissprot blastp hits <span class="citation">(Madden 2013)</span>. These terms were used to impute functional categories of differentially expressed genes.</p>
+<p>Gene Ontology terms <span class="citation">(“Gene Ontology Consortium: Going Forward” 2014; Ashburner et al. 2000)</span> were assigned to each <em>M. leidyi</em> gene based on homologous PFAM domains and significant Swissprot blastp best hits [Camacho2009]. These terms were used to impute functional categories of differentially expressed genes.</p>
 </div>
-<div id="geo-submission" class="section level2">
-<h2>GEO submission</h2>
+<div id="geo-submission" class="section level3">
+<h3>GEO submission</h3>
 <p>Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].</p>
 </div>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
 <div id="refs" class="references">
-<div id="ref-ashburner2000gene">
-<p>Ashburner, Michael, Catherine A Ball, Judith A Blake, David Botstein, Heather Butler, J Michael Cherry, Allan P Davis, et al. 2000. “Gene Ontology: Tool for the Unification of Biology.” <em>Nature Genetics</em> 25 (1). Nature Publishing Group: 25–29.</p>
+<div id="ref-Ashburner2000">
+<p>Ashburner, Michael, Catherine A. Ball, Judith A. Blake, David Botstein, Heather Butler, J. Michael Cherry, Allan P. Davis, et al. 2000. “Gene Ontology: Tool for the Unification of Biology.” <em>Nature Genetics</em> 25 (1). Springer Nature: 25–29. doi:<a href="https://doi.org/10.1038/75556">10.1038/75556</a>.</p>
 </div>
-<div id="ref-gene2015gene">
-<p>Consortium, Gene Ontology, and others. 2015. “Gene Ontology Consortium: Going Forward.” <em>Nucleic Acids Research</em> 43 (D1). Oxford Univ Press: D1049–D1056.</p>
+<div id="ref-2014">
+<p>“Gene Ontology Consortium: Going Forward.” 2014. <em>Nucleic Acids Research</em> 43 (D1). Oxford University Press (OUP): D1049–D1056. doi:<a href="https://doi.org/10.1093/nar/gku1179">10.1093/nar/gku1179</a>.</p>
 </div>
 <div id="ref-kolde2015pheatmap">
 <p>Kolde, R. 2015. “Pheatmap: Pretty Heatmaps. R Package Version 1.0. 2.”</p>
 </div>
-<div id="ref-langmead2012fast">
-<p>Langmead, Ben, and Steven L Salzberg. 2012. “Fast Gapped-Read Alignment with Bowtie 2.” <em>Nature Methods</em> 9 (4). Nature Publishing Group: 357–59.</p>
+<div id="ref-Langmead2012">
+<p>Langmead, Ben, and Steven L Salzberg. 2012. “Fast Gapped-Read Alignment with Bowtie 2.” <em>Nature Methods</em> 9 (4). Springer Nature: 357–59. doi:<a href="https://doi.org/10.1038/nmeth.1923">10.1038/nmeth.1923</a>.</p>
 </div>
-<div id="ref-li2009sequence">
-<p>Li, Heng, Bob Handsaker, Alec Wysoker, Tim Fennell, Jue Ruan, Nils Homer, Gabor Marth, Goncalo Abecasis, Richard Durbin, and others. 2009. “The Sequence Alignment/Map Format and Samtools.” <em>Bioinformatics</em> 25 (16). Oxford Univ Press: 2078–9.</p>
+<div id="ref-Li2009">
+<p>Li, H., B. Handsaker, A. Wysoker, T. Fennell, J. Ruan, N. Homer, G. Marth, G. Abecasis, and R. Durbin and. 2009. “The Sequence Alignment/Map Format and SAMtools.” <em>Bioinformatics</em> 25 (16). Oxford University Press (OUP): 2078–9. doi:<a href="https://doi.org/10.1093/bioinformatics/btp352">10.1093/bioinformatics/btp352</a>.</p>
 </div>
-<div id="ref-love2014moderated">
-<p>Love, Michael I, Wolfgang Huber, and Simon Anders. 2014. “Moderated Estimation of Fold Change and Dispersion for Rna-Seq Data with Deseq2.” <em>Genome Biology</em> 15 (12). BioMed Central: 1.</p>
-</div>
-<div id="ref-madden2013blast">
-<p>Madden, Thomas. 2013. “The Blast Sequence Analysis Tool.” National Center for Biotechnology Information (US).</p>
+<div id="ref-Love2014">
+<p>Love, Michael I, Wolfgang Huber, and Simon Anders. 2014. “Moderated Estimation of Fold Change and Dispersion for RNA-Seq Data with DESeq2.” <em>Genome Biology</em> 15 (12). Springer Nature. doi:<a href="https://doi.org/10.1186/s13059-014-0550-8">10.1186/s13059-014-0550-8</a>.</p>
 </div>
 </div>
 </div>

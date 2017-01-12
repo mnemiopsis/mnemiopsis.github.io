@@ -5,7 +5,7 @@ output:
   html_document:
       code_download: true
       toc: true
-      toc_depth: 2
+      toc_depth: 3
       toc_float:
         collapsed: false
 ---
@@ -34,12 +34,12 @@ setwd("~/projects/Mnemiopsis/website")
 
 #Overview
 
-For these analyses I want to see how much overlap there is between the two sets of significant genes between the 2hpf reference timepoint and the 8hpf reference timepoint. 
+Our quality control analyses showed that the 2hpf and 8hpf references with replicates removed produced datasets with statistically significant results. We extended our initial analyses by comparing these two datasets to each other.
 
 #Data Used
 
-1. The significant genes list from the 2hpf reference quality control differential expression experiment.
-2. The significant genes list from the 8hpf reference quality control differential expression experiment.
+1. The significant genes list from the [2hpa Control - Two Replicates Removed](analysis2hpa2RR.html) experiment.
+2. The significant genes list from the [8hpa Control - Five Replicates Removed](analysis8hpa5RR.html) experiment.
 
 
 
@@ -154,9 +154,12 @@ all_sign <- unique(c(sign2$Gene, sign8$Gene))
 
 # Clustering Significant Genes
 
-For the following heatmap I took the significant genes for the 2hpf and 8hpf control experiments and hierarchically clustered all of the timepoints for each reference control together. 
 
-In Heatmap A, I highlight the first four time points (1hpf - 4hpf) with the 8hpf control and the second four timepoints (5hpf - 8hpf) with the 2hpf control. In doing this we see the presence and then gradual decrease at 5hpf in the Cluster D genes, while all other clusters contain lowly expressed genes that shift to increasingly higher levels of expression at the 5hpf timepoint.
+### Clustering by Fold Change
+
+For the following heatmap, we hierarchically clustered the significant genes by log2 fold changes for each of the two experiments and for all developmental timepoints.
+
+We highlight the first four time points (1hpf - 4hpf) with the 8hpf control and the second four timepoints (5hpf - 8hpf) with the 2hpf control. By doing this, we see an enrichment from 1hpf to 4hpf followed by a gradual decrease from 5hpf to 8hpf of a cohort of genes we are referring to as 'Early Stage'. The 'Late Stage' cluster, in contrast, contains genes expressed at low levels from 1hpf to 4hpf that shift to increasingly higher levels of expression from 5hpf to 8hpf.
 
 
 ```{r clusterAllheat, fig.keep='all'}
@@ -246,7 +249,7 @@ annotationDF <- left_join(annotationDF, mlhere)
 pheatmap(lfc_heat[, keep_cols], show_rownames = FALSE,
          cluster_cols = FALSE, 
          cluster_rows = hr, 
-         main = paste0('Heatmap A: Clustering of the log2 Fold Changes of ', nrow(lfc), ' Genes'), 
+         main = paste0('Clustering of the log2 Fold Changes of ', nrow(lfc), ' Genes'), 
          border_color = NA, 
          annotation_row = annotation, 
          annotation_colors = ann.colors, 
@@ -259,11 +262,9 @@ pheatmap(lfc_heat[, keep_cols], show_rownames = FALSE,
 ```
 
 
-#RPKM Clustering
+###Clustering by RPKM 
 
-Heatmap B shows the clusters that are created from clustering purely from the zscore of the mean RPKM of significant genes from both the 8hr control and the 2hr reference experiments.
-
-I think this is a pretty good proof a principle that the scaled and centered RPKMs are able to recapitulate similar clusters that contain the same gene lists to the clusters created from the differential expression data for the significant genes, with some minor differences in the order of the genes.
+For the following heatmap, we hierarchically clustered the significant genes from the two experiments by z-score of the RPKM for all developmental timepoints. We see the same two clusters containing identical genes when clustering by this method.
 
 
 
@@ -296,7 +297,7 @@ ann.cols             <- list(Cluster = up.colors)
 
 
 
-pheatmap(rpkm_sig_heat, show_rownames = FALSE, cluster_cols = FALSE, cluster_rows = hr, main = paste0('Heatmap B: Clustering of the zscore of the RPKM of ', nrow(rpkm_sig), ' Genes'), border_color = NA, annotation_row=annotation_rpkm, annotation_colors = ann.cols, color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100))
+pheatmap(rpkm_sig_heat, show_rownames = FALSE, cluster_cols = FALSE, cluster_rows = hr, main = paste0('Clustering of the zscore of the RPKM of ', nrow(rpkm_sig), ' Genes'), border_color = NA, annotation_row=annotation_rpkm, annotation_colors = ann.cols, color = colorRampPalette(brewer.pal(n = 7, name = "OrRd"))(100))
 
 ```
 
@@ -341,7 +342,7 @@ ggplot(rpkm_info, aes(x = Time, y = logRPKM)) +
 
 # Significant Gene PCA
 
-Here I did a PCA analysis on the mean RPKM per sample for the significant genes in the heatmaps above. We see that PC2 holds the variance that separates the 'early' transcripts from the 'late' transcripts. PC1 did not provide differentiation between the timepoints and may reflect technical variation.
+PCA analysis on the mean RPKM per sample for the significant genes in the heatmaps above was performed. We see that PC2 holds the variance that separates the 'Early' transcripts from the 'Late' transcripts. PC1 did not provide differentiation between the timepoints and may reflect technical variation.
 
 ```{r}
 
@@ -369,7 +370,7 @@ ggplot(data = rot, aes(x = PC2, y = PC3, label = Sample, colour = Stage)) +
 
 #Cluster Trends
 
-The following is a plot of the trends for each of the clusters in Heatmap A, with the 95% confidence interval on the error bars for both the mean z-score and the mean RPKM.
+Trends for each of the clusters in the heatmap 'Clustering of the log2 Fold Changes of 2594 Genes' are plotted below, with the 95% confidence interval on the error bars for both the mean z-score and the mean RPKM.
 
 ```{r zscore}
 
@@ -434,8 +435,9 @@ ggplot(rpkm_sub_rpkm, aes(y = meanRPKMtot, x = Time)) +
 
 ```
 
-## Table of Cluster Genes
+## Table of Clustered Genes
 
+Searchable table of interactive z-score and mean RPKM trends for individual gene transcripts. To visualize individual scores, mouse over the sparklines or bar graphs in the table below.
 
 ```{r}
 
@@ -467,7 +469,9 @@ rpkm_sub <- left_join(annotationDF, rpkm) %>%
   mutate(meanRPKM = paste(round(meanRPKM, digits = 2), collapse = ",")) %>%
   ungroup() %>%
   dplyr::select(Gene, Cluster, transcript_length, zscore, meanRPKM, sp_desc) %>%
-  distinct()
+  distinct() %>%
+  dplyr::rename('length' = transcript_length) %>%
+  dplyr::rename('RPKM' = meanRPKM)
 
 
 bar_string <- "type: 'bar', barColor: 'red', negBarColor: 'blue', highlightColor: 'black'"
@@ -500,7 +504,7 @@ d5 <- datatable(rpkm_sub, rownames = FALSE, extensions = c('Buttons','Scroller',
     deferRender = TRUE,
     scrollY = 800,
     colReorder = TRUE,
-    scroller = TRUE), caption = 'Table 1: All Genes in associated clusters')
+    scroller = TRUE))
 d5$dependencies <- append(d5$dependencies, htmlwidgets:::getDependency("sparkline"))
 
 
@@ -518,9 +522,9 @@ cat('<br><br><br>')
 
 ## Transcription Factor heatmap
 
-The following heatmap shows all significantly differentially expressed genes that are annotated to GO term 'GO0006355': regulation of transcription, DNA-templated.
+The following heatmap shows all statistically significant, differentially expressed genes that annotate to GO term 'GO0006355': regulation of transcription, DNA-templated, i.e., transcription factors.
 
-'Differentially Expressed' defined as having a p-value less than or equal to 1e-5 and log2Fold Change greater than 0.5 at any time point.
+Genes having a p-value less than or equal to 1e-5 and an absolute log2 Fold Change value greater than 0.5 at any time point are included.
 
 ```{r tfheatmap, fig.height=12, fig.width=11}
 
@@ -584,25 +588,10 @@ pheatmap(tfl_heat[, keep_cols],
 
 ## Differentially Expressed Genes
 
-The following are heatmaps for differentially expressed genes annotated to the following GO terms:
-
-
-<font color="DarkGray"> Table 2: Descriptor GO terms with link to the Gene Ontology page associated.</font>
-
-
-GO ID | Description | Gene Ontology Link |
-------|--------------------------------------|-----------|
-GO0007049    |       Cell Cycle|http://amigo.geneontology.org/amigo/term/GO:0007049
-GO0048729 |Tissue Morphogenesis|http://amigo.geneontology.org/amigo/term/GO:0048729
-GO0030154 |Cell Differentiation|http://amigo.geneontology.org/amigo/term/GO:0030154
-GO0007276  |  Gamete Generation|http://amigo.geneontology.org/amigo/term/GO:0007276
-GO0007498 |Mesoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007498
-GO0007492 |Endoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007492
-GO0007398 |Ectoderm Development|http://amigo.geneontology.org/amigo/term/GO:0007398
+The tabs below contain heatmaps for differentially expressed genes annotated to the GO terms described in the 'Term Info' tab.
 
 
 
-'Differentially Expressed' defined as having a p-value less than or equal to 1e-5 and log2Fold Change greater than 0.5 at any time point. GO terms that do not have heatmaps have less than five genes annotated.
 
 ```{r DEHeatmaps, fig.keep="all", result='asis'}
 
@@ -682,9 +671,10 @@ heatmaps <- heatmaps[which(sapply(heatmaps, function(x){!is.null(x)}))]
 
 ```
 
-###Heatmaps {.tabset}
+### GO term Heatmaps {.tabset}
 ```{r, fig.keep='all', results='asis', fig.height=6, fig.width=10, fig.show = 'asis'}
 
+library(htmltools)
 
 for(x in heatmaps){
   cat( "\n\n####", x[[1]], "\n\n")
@@ -712,7 +702,8 @@ for(x in heatmaps){
                annotation_col = annot_column, 
                annotation_names_col = FALSE, 
                filename = filename)
-      cat(paste0("#####[Link to ", x[[1]]," Heatmap](http://bioinfo/home/klg/projects/Mnemiopsis/website/", filename, ")<br><br><br>"))
+
+      cat(paste0("#####[Link to ", x[[1]]," Heatmap](http://bioinfo/home/klg/projects/Mnemiopsis/website/", filename, ")<br><br><br><br><br><br><br><br><br><br><br><br>"))
     } else {
   pheatmap(df[, keep_cols],  
            cluster_cols = FALSE, 
@@ -731,14 +722,36 @@ for(x in heatmaps){
            legend_labels = c(seq(-3, 3), "title\n"))
     }
   }
+```
+
+#### Term Info
+```{r, results="asis", echo = FALSE}
 
 
+dt <- rbind(
+  c('GO0007049', 'Cell Cycle', 'http://amigo.geneontology.org/amigo/term/GO:0007049'),
+  c('GO0048729', 'Tissue Morphogenesis', 'http://amigo.geneontology.org/amigo/term/GO:0048729'),
+  c('GO0030154', 'Cell Differentiation', 'http://amigo.geneontology.org/amigo/term/GO:0030154'),
+  c('GO0007276', 'Gamete Generation', 'http://amigo.geneontology.org/amigo/term/GO:0007276'),
+  c('GO0007498', 'Mesoderm Development', 'http://amigo.geneontology.org/amigo/term/GO:0007498'),
+  c('GO0007492', 'Endoderm Development', 'http://amigo.geneontology.org/amigo/term/GO:0007492'),
+  c('GO0007398', 'Ectoderm Development', 'http://amigo.geneontology.org/amigo/term/GO:0007398'))
+  
+colnames(dt) <- c('GO ID','Description', 'Gene Ontology Link')
+
+dt[,'Gene Ontology Link'] <- paste0("<a href='",dt[,'Gene Ontology Link'],"'>",dt[,'Gene Ontology Link'],"</a>")
+
+DT::datatable(dt, options = list(dom = 't'), escape = FALSE)
 
 ```
 
 
-### Bar Plot
-The following bar plot shows the number of significantly differenctially expressed genes annotated to each of the GO terms in Table 2.
+
+
+
+
+### GO Term Bar Plot
+The following bar plot shows the number of significantly differenctially expressed genes annotated to each of the GO terms.
 
 ```{r DEgenesBarPlot}
 
@@ -761,10 +774,12 @@ ggplot(gene_bar, aes(x = Term, y = num_rep)) + geom_bar(stat="identity", fill = 
 
 ```
 
+### Genes in GO term Bar Plot
+
 ```{r, results='asis'}
 
-DT::datatable(dplyr::select(dea_go1, Gene, sp_desc, Term, Cluster),
-               caption = 'Table 3: Mnemiopsis Genes Annotated to the GO terms in Table 2.')
+
+DT::datatable(dplyr::select(dea_go1, Gene, sp_desc, Term, Cluster))
 
 
 cat('<br><br><br>')
@@ -773,7 +788,7 @@ cat('<br><br><br>')
 
 # GO Term Enrichment
 
-The following figure shows the significantly enriched GO terms that had at least 5 genes annotated, and a Benjamini-Hochberg adjusted p-value less than or equal to 0.05 for both the Early and Late stage genes. 
+Significantly enriched GO terms that had at least 5 genes annotated, and a Benjamini-Hochberg adjusted p-value less than or equal to 0.05 for either the Early and Late stage genes. 
 
 ```{r, fig.width=8.5, fig.height=8.5, results = 'asis'}
 table2  <- data.table::fread('output/2hpf_all_go_enrichment.xls', data.table = FALSE)
@@ -813,8 +828,15 @@ ggplot(table, aes(y = Num_Genes, x = Term, fill = EnrichID)) +
   theme(axis.title.y = element_text(margin=margin(0,-10,0,0)),
         axis.text.y = element_text(margin = margin(0,-20,0,0)),
         legend.title = element_blank())
+```
 
-DT::datatable(dplyr::select(table, go_id, Term, Ontol, EnrichID, BH.correction, Num_Genes))
+### Genes in GO term Bar Plot
+```{r, results = 'asis'}
+
+dt <- dplyr::select(table, go_id, Term, Ontol, EnrichID, BH.correction, Num_Genes) %>%
+  dplyr::rename('pAdjusted' = BH.correction)
+
+DT::datatable(dt)
 
 ```
 

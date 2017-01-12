@@ -1,18 +1,19 @@
 ---
 title: "Transcriptome" 
 author: "Eric Ross"
+bibliography: transcriptome.bibtex
 output:
   html_document:
       code_download: true
       toc: true
-      toc_depth: 2
+      toc_depth: 3
       toc_float:
         collapsed: false
 ---
 
 # Overview
 
-Assembly and analysis of _Mnemiopsis leidyi_ transcriptome.
+Assembly and annotation of _Mnemiopsis leidyi_ transcriptome.
 
 ```{r setup, include = FALSE}
 # better rendering error messages
@@ -32,9 +33,8 @@ setwd("/home/ejr/analysis/")
 
 # Data Sources
 
-Sequencing Directory: /n/projects/ejr/external_sequencing/Mnemiopsis_leidyi/NCBI
 
-| Time point | Year Collected | Replicate Name | left/right | Filename |
+| Time point | Year Collected | Replicate Name | left(1)/right(2) | Filename |
 | ---- | ---- | -- | - | ----------------------- |
 | 1hpf | 2012 | N7 | 1 | 1hpf_2012_N7_1.fastq.gz |
 | 1hpf | 2012 | N7 | 2 | 1hpf_2012_N7_2.fastq.gz |
@@ -106,7 +106,7 @@ Sequencing Directory: /n/projects/ejr/external_sequencing/Mnemiopsis_leidyi/NCBI
 
 # Assembly
 
-Transcriptome assembly was performed with Trinity (trinityrnaseq_r20140717).  Left and right reads were concatenated and then passed to Trinity.
+Left and right reads were separately concatenated and then assembled with Trinity version trinityrnaseq_r20140717 [@Grabherr2011].
 
 <pre><code>Trinity \  
 --normalize_reads \  
@@ -133,16 +133,16 @@ rights.fastq
 |N90: | 266|
 
 
-# Sequence Cleaning (Round 1)
+# Sequence Cleaning 
 
-Assembled Transcriptome was run through seqclean to clean up adapter and contaminate from other species.  Seqclean also removes sequence below the specified length (300bp).  Trinity defaults to a 200bp minimum length which caused 90,500 short sequences to be dropped.
+Adapter and contaminate was removed from assembly using SeqClean [@1_cleaner_2017]. Additionally, sequences shorter than 300 bp were discarded.
 
 <pre><code>seqclean \  
 Mnemiopsis_leidyi_trinity_20140802_unfiltered.nt \  
--v /n/projects/ejr/blastdb/contaminate/UniVec \  
+-v UniVec \  
 -l 300 \  
 -c 16 \  
--s /n/projects/ejr/blastdb/contaminate/Hs_GRCh38.nt,/n/projects/ejr/blastdb/contaminate/ecoli.nt  
+-s Hs_GRCh38.nt,ecoli.nt  
 </code></pre>
 
 
@@ -178,7 +178,7 @@ Sequences analyzed:    233327
 
 # Genome Filtering
 
-In order to produce a more accurate transcriptome set we filtered out sequences not present in the available _M. leidyi_ genome. We used a very permissive requirement that any transcript alignign with at least 90% identity over any length of alignment ought to be retained.
+In order to produce a more accurate transcriptome set, we filtered out sequences not present in the available _M. leidyi_ genome. We used the very permissive requirement that any transcript aligning with at least 90% identity over any length of genomic sequence ought to be retained.
 
 
 ## Genome Filtered Transcript Statistics
@@ -195,9 +195,9 @@ In order to produce a more accurate transcriptome set we filtered out sequences 
 |N50: | 2,168|
 |N90: | 601|
 
-# Sequence Cleaning (Additional Rounds)
+# Additional Sequence Cleaning 
 
-NCBI detected additional contaminate in our sequences, primarily vector.  Seqclean did not remove concatenated adapter.  We ran additional rounds of Seqclean until we could no longer detect adapter.
+NCBI detected additional contaminate in our sequences, primarily vector/adapter. We sequentially ran SeqClean to remove concatenated adapter.
 
 ## Cleaned Sequence Statistics
 
@@ -215,7 +215,7 @@ NCBI detected additional contaminate in our sequences, primarily vector.  Seqcle
 
 # Transcript collapse
 
-For RNAseq we wished to create a non-redundant set of transcripts by collapsing isoforms using CD-HIT.
+For RNAseq we wished to create a non-redundant set of transcripts by collapsing isoforms using CD-HIT [@Li2001].
 
 <pre><code>cd-hit-est \  
 -i in_genome_clean_r6.nt \  
@@ -245,13 +245,13 @@ For RNAseq we wished to create a non-redundant set of transcripts by collapsing 
 
 # Sequence Renaming
 
-Sequence were renamed with a "Mle" prefix and zero padded numbers.  Names are in the format of Mle_000001.  
+Sequences were renamed with a "Mle" prefix and zero padded numbers.  Names are in the format of 'Mle_000000'.  
 
 # Annotation
 
-## Swissprot / uniprot
+### Swissprot / Uniprot
 
-Best BLASTX hits to swissprot with a maximum evalue of .001 were used to annotate genes.  
+Best BLASTX hits to Swissprot with a maximum evalue of 0.001 were used to annotate genes [@Camacho2009].  
 
 <pre><code>blastx \
 -query Mleidyi_20160525.nt \  
@@ -264,9 +264,9 @@ Best BLASTX hits to swissprot with a maximum evalue of .001 were used to annotat
 -num_threads 32
 </code></pre>
 
-## Pfam
+### Pfam
  
-Sequences were translated with Transdecoder and then Domains were assigned to transcripts using hmmscan against Pfam-A.  
+Sequences were translated with Transdecoder and then domains were assigned to transcripts using hmmscan against the Pfam-A database [@Eddy2011].  
 <pre><code>Transdecoder.LongOrfs \  
 -S \
 -m 60 \
@@ -289,7 +289,7 @@ All ORFs of 60aa or greater were retained.
 awk '{print $4 "\t" $2}' Mleidyi_20160525.aa.fa.pfam.table | perl -p -e 's/(Mle_\d+)\|.*(\t.+)/$1$2/' | sort -u > mleidyi2pfam.txt
 </code></pre>
 
-## Software
+# Software
 
 
 | Program      | Version                   |
@@ -301,35 +301,13 @@ awk '{print $4 "\t" $2}' Mleidyi_20160525.aa.fa.pfam.table | perl -p -e 's/(Mle_
 | cd-hit       | CD-HIT version 4.6        |
 | HMMeR        | 3.1b2                     |
 
-## Accession Numbers
+# Accession Numbers
 
 BioProject: PRJNA344880  
 TSA: GFAT00000000  
 
-## References
-
-
-CDHIT:  
-"Clustering of highly homologous sequences to reduce thesize of large protein database", Weizhong Li, Lukasz Jaroszewski & Adam Godzik. Bioinformatics, (2001) 17:282-283  
-   "Cd-hit: a fast program for clustering and comparing large sets of protein or nucleotide sequences", Weizhong Li & Adam Godzik. Bioinformatics, (2006) 22:1658-1659  
-
-HMMER:  
-Accelerated profile HMM searches. S. R. Eddy. PLoS Comp. Biol., 7:e1002195, 2011.  
-
-Trinity and Transdecoder:  
-Grabherr MG, Haas BJ, Yassour M, Levin JZ, Thompson DA, Amit I, Adiconis X, Fan L, Raychowdhury R, Zeng Q, Chen Z, Mauceli E, Hacohen N, Gnirke A, Rhind N, di Palma F, Birren BW, Nusbaum C, Lindblad-Toh K, Friedman N, Regev A. Full-length transcriptome assembly from RNA-seq data without a reference genome. Nat Biotechnol. 2011 May 15;29(7):644-52. doi: 10.1038/nbt.1883. PubMed PMID: 21572440.  
-
-BLAST+:  
-Camacho C., Coulouris G., Avagyan V., Ma N., Papadopoulos J., Bealer K., & Madden T.L. (2008) "BLAST+: architecture and applications." BMC Bioinformatics 10:421.  
-
-Seqclean:  
-https://sourceforge.net/projects/seqclean/  
+# References
 
 
 
-```{r session, echo=FALSE}
-writeLines(capture.output(sessionInfo()), "sessionInfo/transcriptomeSessionInfo.txt")
-```
-
-#[R-session information](`r paste0("http://bioinfo/", gsub("/home/", "~", getwd()), "/sessionInfo/StorySessionInfo.txt")`)
 

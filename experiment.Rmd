@@ -4,7 +4,7 @@ bibliography: methods.bibtex
 output:
   html_document:
       toc: true
-      toc_depth: 2
+      toc_depth: 3
       toc_float:
         collapsed: false
 
@@ -12,7 +12,8 @@ output:
 
 #Overview
 
-A time series from 1 hour post fertilization to 9 hours post fertilization (hpf) was collected for RNA-seq to understand the shifts occuring in the developing *M. leidyi* embryonic transcriptome.
+A time series from 1 hour to 9 hours post-fertilization (hpf) was collected for RNA-seq by students of the [MBL Embryology Course](http://www.mbl.edu/education/courses/embryology/) to understand the shifts in gene expression occuring in the early embryo of *M. leidyi*.
+
 
 #Sample Collection
 Animals were collected in the wild at various locations around Woods Hole, MA either by net or by a plastic beaker attached to a pole for gently scooping the animals from the water as pictured:
@@ -22,29 +23,29 @@ Animals were collected in the wild at various locations around Woods Hole, MA ei
 
 
 
-Three biological replicates were collected for timepoints 1hpf, 2hpf, 3hpf, 4hpf, 5hpf, 6hpf, 7hpf, 8hpf, 9hpf. 
+Multiple biological replicates were collected for timepoints 1, 2, 3, 4, 5, 6, 7, 8, and 9 hpf. 
 
 
-#RNA-seq
+#RNA Extraction and Assembly
 
-Total RNA was harvested according to 
+- Total RNA was harvested according to [this protocol](methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf)
 
-[this protocol](methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf)
-
-mRNA was extracted from the total RNA in to parts: [part 1](methods/Dynabead-protocol-Mnemiopsis-partI.pdf) and [part2](methods/Dynabead-protocol-Mnemiopsis-partII.pdf)
+- mRNA was extracted from the total RNA in to parts: [part 1](methods/Dynabead-protocol-Mnemiopsis-partI.pdf) and [part2](methods/Dynabead-protocol-Mnemiopsis-partII.pdf)
 
 
-Library prep method and sequencing info.
+- Library prep method and sequencing info.
 
 
-Transcriptome assembly was performed with Trinity using all of the reads for all samples and replicates.
+- Transcriptome assembly was performed with [this protocol](transcriptome.html).
 
 
-#Analysis
+#Sequence Analysis
 
-Bowtie2 with the --norc parameter was used to align reads from each developmental timepoint to the reference transcriptome  [@langmead2012fast]. Samtools quantified the alignments for each reference sequence [@li2009sequence]. 
+RNA sequence reads from each developmental timepoint were aligned to the assembled transcriptome, followed by quantification and expression analysis.
 
-##FASTQ processing commands
+
+
+###FASTQ processing commands
 
 
 ```{r SampleAlignmentCommands, engine='sh', eval = FALSE}
@@ -61,21 +62,23 @@ samtools index ${fastq}.bam;
 samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 
 ```
-
-##R Analysis
-
+[@Langmead2012], [@Li2009]
 
 
-Counts for trinity isoforms were summed to create a count 'per gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@love2014moderated]. 
+###R Analyses
 
-For the differential expression analysis, all timepoints were contrasted with the eight hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’), and the two hour time point (omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’). 
+
+
+Counts for isoforms were summed to create a count per 'gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@Love2014]. 
+
+For the differential expression analysis, all timepoints were compared against the eight hour time point (8 hpf). The following samples were omitted for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’. Additionally, all timepoints were compared against the two hour time point (2 hpf) omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’. 
 
 All heatmaps were created using the R package pheatmap [@kolde2015pheatmap].
 
-Gene Ontology [@gene2015gene; @ashburner2000gene] terms were assigned to each *M. leidyi* gene based on homologous PFAM domains and significant Swissprot blastp hits [@madden2013blast]. These terms were used to impute functional categories of differentially expressed genes.
+Gene Ontology terms [@2014; @Ashburner2000] were assigned to each *M. leidyi* gene based on homologous PFAM domains and significant Swissprot blastp best hits [Camacho2009]. These terms were used to impute functional categories of differentially expressed genes.
 
 
-##GEO submission
+###GEO submission
 Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].
 
 

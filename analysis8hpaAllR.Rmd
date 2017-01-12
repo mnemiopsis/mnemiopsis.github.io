@@ -38,15 +38,12 @@ opts_knit$set(root.dir = "./")
 
 # Overview
 
-Analyze the Mnemiopsis data with the new filtered transcriptome that Eric generated.
-
+Differential expression analysis with 8hpa control and all replicates.
 
 #Spearman Correlation
 
+Spearman's rank correlation coefficient is a nonparametric measure of rank correlation, recommended for data that does not necessarily come from a bivariate normal distribution (Wikipedia). Below, we plot the Spearman correlation of the RPM (reads per million) for all genes that have an average RPM &#8805; 1.
 
-The following plots the spearman correlation of the RPM (reads per million) for all genes that have an average RPM &#8805; 1.
-
-Spearman's rank correlation coefficient is a nonparametric measure of rank correlation, recommended for data that doesn't necessarily come from a bivariate normal distribution.
 
 
 ```{r spearman_correlation8hpaControlAllReplicates, fig.cap = ""}
@@ -75,6 +72,8 @@ ggplot(data = spearmanTidy, aes(x = ID, y = Sample, fill = correlation)) + geom_
 
 # Pairwise PCA
 
+Principal component analysis (PCA) is a statistical procedure that uses an orthogonal transformation to convert a set of observations of possibly correlated variables into a set of values of linearly uncorrelated variables called principal components (Wikipedia). Below is a PCA of the 8hpf control versus the other developmental timepoints. 
+
 ```{r PCA8hpaControlAllReplicates, fig.fullwidth = TRUE, fig.width = 10, fig.height = 10}
 
 pcas_data <- lapply(contrast_names, function(x){
@@ -99,9 +98,9 @@ ggplot(data = pca_data, aes(x = PC1, y = PC2, label = name, colour = factor(cond
 
 # MA and Volcano plots {.tabset}
 
-MA plot: The log2 fold change(M) plotted against the log2 average(A) of the normalized read count for each gene.  Significantly differentially expressed genes are plotted in red.
+MA plot: The log2 fold change (M) plotted against the log2 average (A) of the normalized read count for each gene. Significantly differentially expressed genes are plotted in red.
 
-Volcano plot: The log2 fold change(M) plotted against the -log10 (eg. 1e^-10 = 10) of the adjusted p-value.
+Volcano plot: The log2 fold change (M) plotted against the -log10 (eg. 1e^-10 = 10) of the adjusted p-value.
 
 ```{r mavol8hpaControlAllReplicates}
 
@@ -164,9 +163,9 @@ for(i in contrast_names){
 #Heatmaps
 
 
-The first heatmap was made by hierarchically clustering the euclidean distances of the log2 fold change for genes with p-values less than `r pval` at any time point.
+The first heatmap was made by hierarchically clustering the euclidean distances of the log2 fold change for genes with p-values less than  1e^-5 at any time point.
 
-The second heatmap uses the same hierarchical method to cluster timepoints.
+The second heatmap uses the same hierarchical method to cluster timepoints as well as genes.
 
 
 ```{r pairwiseHeatmaps8hpaControlAllReplicates, results = "hide", fig.cap = "", fig.keep = "high"}

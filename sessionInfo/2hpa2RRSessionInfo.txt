@@ -18,7 +18,7 @@ other attached packages:
  [1] kiRsten_0.0.0.9000         dplyr_0.5.0               
  [3] purrr_0.2.2                readr_1.0.0               
  [5] tidyr_0.6.0                tibble_1.2                
- [7] ggplot2_2.2.0              tidyverse_1.0.0           
+ [7] ggplot2_2.2.1              tidyverse_1.0.0           
  [9] gridExtra_2.2.1            knitr_1.15                
 [11] RColorBrewer_1.1-2         gplots_3.0.1              
 [13] DESeq2_1.14.0              SummarizedExperiment_1.2.3

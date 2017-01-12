@@ -6,3 +6,15 @@ blockquote {
 .jqstooltip{
         box-sizing: content-box;
     }
+    
+    
+hr {
+    border: none;
+    height: 3px;
+    color: #999; /* old IE */
+    background-color: #999; /* Modern Browsers */
+    width: auto;
+    margin-right:255px;
+}
+
+

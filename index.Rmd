@@ -1,29 +1,30 @@
----
-title: "<em>Mnemiopsis leidyi</em> Development"
-date: "`r Sys.Date()`"
 
----
 
-...Under Construction
+
+
+# Adult _Mnemiopsis leidyi_
 
 
 <iframe src="https://player.vimeo.com/video/194724472" width="640" height="640" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<p><a href="https://vimeo.com/194724472">Adult Ctenophore, video by Alejandro Sánchez Alvarado</a>
+<p><a href="https://vimeo.com/194724472">Adult _Mnemiopsis leidyi_ Video</a><p style="padding-left:410px">Video by Alejandro Sánchez Alvarado</p>
 
 
+______________________________________________________________
 
 
+# _Mnemiopsis leidyi_ Embryogenesis
 
 <iframe src="https://player.vimeo.com/video/194724462" width="640" height="483" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
-<p><a href="https://vimeo.com/194724462">Ctenophore Early Embryonic Development, video by Carine Stapel</a>
+<p><a href="https://vimeo.com/194724462">_Mnemiopsis leidyi_ Embryogenesis Video</a><p style="padding-left:505px">Video by Carine Stapel</p>
+
+
+______________________________________________________________
 
 
 
 
 
-
-
-Images of the embryogenesis:
+#Still Images of _M. leidyi_ Embryogenesis
 
 <img src="images/1Ct-2006-timelapse-0037_t007.jpg" style="width:210px;height:128px;">
 <img src="images/2Ct-2006-timelapse-0037_t063.jpg" style="width:210px;height:128px;">
@@ -40,6 +41,10 @@ Images of the embryogenesis:
 <img src="images/7Ct-2006-timelapse-0037_t575.jpg" style="width:210px;height:128px;">
 <img src="images/8Ct-2006-timelapse-0038_t60.jpg" style="width:210px;height:128px;">
 <img src="images/9Ct-2006-timelapse-0049_t41.jpg" style="width:210px;height:128px;">
+
+
+<p style="padding-left:410px">Images courtesy of Mark Martindale</p>
+______________________________________________________________
 
 
 
