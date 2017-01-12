@@ -4,7 +4,6 @@ author: "Eric Ross"
 bibliography: transcriptome.bibtex
 output:
   html_document:
-      code_download: true
       toc: true
       toc_depth: 3
       toc_float:
