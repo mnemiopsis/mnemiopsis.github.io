@@ -2,7 +2,7 @@
 
 args<-commandArgs(TRUE)
 if (length(args) == 0L || any(c('-h', '--help') %in% args)) {
-    message('usage: path/to/input_smed_GO_enrich.R input1 input2 input3
+    message('usage: path/to/input__GO_enrich.R input1 input2 input3
     Runs GO term enrichment for a list of genes.
     Output:  A table of enrichment, either "all_go_enrichment.xls", or "go_slim_enrichment.xls"
     Args:
@@ -63,7 +63,7 @@ Get.go.terms <- function(GOterms, list.terms, ontol, xx){
     # Runs the base line GO term analysis as provided through topGO.
     ## contrast             <- dx[index,"contrasts"]
     #terms                <- list.terms[[index]]
-    #genes                <- table[terms, "smed_id"]
+    #genes                <- table[terms, "_id"]
     geneList             <- factor(as.integer(GOterms$id %in% list.terms))
     names(geneList)      <- GOterms$id
     #contrast <- dx[index,"contrasts"]
@@ -100,9 +100,9 @@ retrieve.my.genes <- function(final, readmap.inverse, terms){
     invisible(my.terms)
 }
 
-lookup.smed.zeros <- function(off.gos, all.readmap){
-    ## lookup SMED genes present in the analysis for the offspring terms
-    ##      off.gos: GO terms with zero SMED genes associated
+lookup.zeros <- function(off.gos, all.readmap){
+    ## lookup genes present in the analysis for the offspring terms
+    ##      off.gos: GO terms with zero  genes associated
     ##      all.readmap: the map of transcripts to GO terms for the analysis
     
     resul <- na.omit(lapply(off.gos, function(x){all.readmap[[x]]}))
@@ -112,7 +112,7 @@ lookup.smed.zeros <- function(off.gos, all.readmap){
 
 
 get.parent.length <- function(zeros.dx, Ontol){
-    ## return the SMED genes associated with a parent GO term
+    ## return the  genes associated with a parent GO term
     ##     zeros.dx: dataframe of the parent GO terms with zero values
     ##     Ontol: One of either "CC", "MF", "BP"
     require(GO.db)
@@ -131,12 +131,12 @@ get.parent.length <- function(zeros.dx, Ontol){
         }
         ## lookup the offspring GO terms
         ontol.zero.off   <- unlist2(lapply(zeros.dx$go_id, function(x){ontol.off[x]}))
-        ## lookup SMED genes for the offspring terms
-        ontol.smed       <- lookup.smed.zeros(ontol.zero.off, readmap.inverse)
+        ## lookup  genes for the offspring terms
+        ontol.       <- lookup.zeros(ontol.zero.off, readmap.inverse)
         ## pull out unique names of the GO terms
-        ontol.names.uniq <- unique(names(ontol.smed))
-        ## pull out the number of SMED genes associated with the parent GO terms
-        ontol.ids.genes        <- lapply(ontol.names.uniq, function(x){unique(unlist(ontol.smed[grep(x, names(ontol.smed))]))})
+        ontol.names.uniq <- unique(names(ontol.))
+        ## pull out the number of  genes associated with the parent GO terms
+        ontol.ids.genes        <- lapply(ontol.names.uniq, function(x){unique(unlist(ontol.[grep(x, names(ontol.))]))})
         ontol.ids.len          <- unlist2(lapply(ontol.ids.genes, length))
         Genes                  <- unlist2(lapply(ontol.ids.genes, paste, collapse=", "))
         dff                    <- data.frame(GO=ontol.names.uniq, Length=ontol.ids.len, Genes=Genes, stringsAsFactors=FALSE)
@@ -178,20 +178,11 @@ if(length(args) == 3){
 
 
 if(args[2] == "all_go"){
-    GOterms <- read.table("/home/klg/projects/Mnemiopsis/website/output/gene2go.txt", quote="", stringsAsFactors=FALSE, sep="\t", header=TRUE)
+    GOterms <- read.table("gene2go.txt", quote="", stringsAsFactors=FALSE, sep="\t", header=TRUE)
     colnames(GOterms) <- c("id", "term")
-    readmap           <- readMappings("/home/klg/projects/Mnemiopsis/website/output/gene2go.txt", sep = "\t", IDsep = ";")
-} else {
-    GOterms <- read.table("/n/projects/klg/RNAseq_pipeline/smed/gene2GOslim.txt", quote="", stringsAsFactors=FALSE, sep="\t", header=TRUE)
-    #colnames(GOterms) <- c("id", "term")
-    readmap           <- readMappings("/n/projects/klg/RNAseq_pipeline/smed/gene2GOslim.txt", sep = "\t", IDsep = ",")
+    readmap           <- readMappings("gene2go.txt", sep = "\t", IDsep = ";")
 }
 
-
-## edit this to put in custom read mappings
-## GOterms <- read.table(args[2], quote="", stringsAsFactors=FALSE, sep="\t", header=TRUE)
-## colnames(GOterms) <- c("id", "GO_terms")
-## readmap           <- readMappings(args[2], sep = "\t", IDsep = ",")
 
 
 terms <- scan(args[1], "character")
@@ -199,7 +190,7 @@ terms <- scan(args[1], "character")
 
 
 ## read in the entire gene2allGo annotation and only keep the terms that are present in the chosen significant genes.
-all.readmap <- readMappings("/home/klg/projects/Mnemiopsis/website/output/gene2go.txt", sep = "\t", IDsep = ";")
+all.readmap <- readMappings("gene2go.txt", sep = "\t", IDsep = ";")
 all.readmap <- all.readmap[terms]
 readmap.inverse    <- inverseList(all.readmap)
 
@@ -231,7 +222,7 @@ final           <- rbind(mf.df, cc.df, bp.df)
 rownames(final) <- NULL
 
 
-## get the SMED genes associated with the enrichment and attach them to the enrichment data.frame
+## get the  genes associated with the enrichment and attach them to the enrichment data.frame
 my.genes        <- retrieve.my.genes(final, readmap.inverse, terms)
 my.genes        <- lapply(my.genes, unique)
 len.my.genes    <- lapply(my.genes, length)
@@ -258,13 +249,13 @@ final.t$Branch_Num_Genes     <- NA
 final.t$Branch_Genes         <- NA
 
 
-## next filter out any parent terms that have zero SMED Genes currently annotated
+## next filter out any parent terms that have zero  Genes currently annotated
 zero <- filter(final, Num_Genes == 0)
 
 
 
 
-## initialize ontologies for parent GO terms that are not annotated to SMED genes
+## initialize ontologies for parent GO terms that are not annotated to  genes
 zero.cc <- filter(zero, Ontol == "CC")
 zero.bp <- filter(zero, Ontol == "BP")
 zero.mf <- filter(zero, Ontol == "MF")
@@ -272,7 +263,7 @@ zero.mf <- filter(zero, Ontol == "MF")
 
 
 
-## find the number of SMED genes associated with the parent ID
+## find the number of  genes associated with the parent ID
 cc.final <- get.parent.length(zero.cc, "CC")
 bp.final <- get.parent.length(zero.bp, "BP")
 mf.final <- get.parent.length(zero.mf, "MF")
@@ -290,8 +281,6 @@ if (nrow(final.done)>0){
     message("No enrichment")
 }
 
-
-## out.dir <- dirname(args[1])
 
 ## create.hierarchy(cc.go, cc.df, "CC", args[2], out.dir)
 ## create.hierarchy(mf.go, mf.df, "MF", args[2], out.dir)

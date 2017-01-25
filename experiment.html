@@ -378,7 +378,7 @@ samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 </div>
 <div id="r-analyses" class="section level3">
 <h3>R Analyses</h3>
-<p>Counts for isoforms were summed to create a count per ‘gene’, which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts <span class="citation">(Love, Huber, and Anders 2014)</span>.</p>
+<p>Counts for isoforms were summed to create a count per ‘gene’, which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts <span class="citation">(Love, Huber, and Anders 2014)</span>. The following code block is a sample script for the RNA-seq analysis:</p>
 <p>For the differential expression analysis, all timepoints were compared against the eight hour time point (8 hpf). The following samples were omitted for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’. Additionally, all timepoints were compared against the two hour time point (2 hpf) omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’.</p>
 <p>All heatmaps were created using the R package pheatmap <span class="citation">(Kolde 2015)</span>.</p>
 <p>Gene Ontology terms <span class="citation">(“Gene Ontology Consortium: Going Forward” 2014; Ashburner et al. 2000)</span> were assigned to each <em>M. leidyi</em> gene based on homologous PFAM domains and significant Swissprot blastp best hits [Camacho2009]. These terms were used to impute functional categories of differentially expressed genes.</p>
@@ -386,6 +386,502 @@ samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 <div id="geo-submission" class="section level3">
 <h3>GEO submission</h3>
 <p>Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession GSE93977.</p>
+</div>
+<div id="scripts" class="section level3 tabset">
+<h3>Scripts</h3>
+<div id="deseq2" class="section level4">
+<h4>DESeq2</h4>
+<pre class="r"><code>#!/usr/bin/env Rscript
+
+
+## First list the R libraries I want to use
+libraries        &lt;- c(&quot;DESeq2&quot;, &quot;parallel&quot;, &quot;dplyr&quot;, &#39;tidyr&#39;, &#39;kirsten&#39;)
+
+
+## Now read in the libraries
+lapply(libraries, function(x){
+  print(x)
+  library(x, character.only = TRUE, quietly = TRUE)
+})
+
+
+## Create output directories
+
+
+new.dirs &lt;- c(&#39;figures&#39;, &#39;workspace_images&#39;, &#39;output&#39;)
+lapply(new.dirs, function(x){
+  if(!dir.exists(x)){
+    dir.create(x)}})
+
+
+
+tidyCounts &lt;- data.table::fread(&quot;output/countsTidy.txt&quot;, data.table = FALSE)
+
+## remove samples
+tidyCounts &lt;- tidyCounts %&gt;% filter(!Sample %in% samplesRemove)
+
+
+counts     &lt;- tidyCounts %&gt;% spread(key = Sample, value = Count)
+  
+
+WriteTable(x = counts, file = &#39;output/counts.txt&#39;)
+
+normCounts &lt;- tidyCounts %&gt;% group_by(Sample) %&gt;%
+                             mutate(rpkm = (1e9 * as.numeric(Count))/(sum(as.numeric(Count)) * as.numeric(transcript_length))) %&gt;%
+                               mutate(rpm = (as.numeric(Count))/(sum(as.numeric(Count))/1e6)) %&gt;%
+                                  mutate(rpk = (as.numeric(Count)/(as.numeric(transcript_length)/1000))) %&gt;%
+                                      mutate(tpm = rpk/(sum(as.numeric(rpk))/1e6)) %&gt;% ungroup() %&gt;% select(-rpk)
+
+
+
+rpkmOut &lt;- normCounts %&gt;% select(ID, transcript_length, Sample, rpkm) %&gt;% spread(Sample, rpkm)
+tpmOut  &lt;- normCounts %&gt;% select(ID, transcript_length, Sample, tpm) %&gt;% spread(Sample, tpm)
+rpmOut  &lt;- normCounts %&gt;% select(ID, transcript_length, Sample, rpm) %&gt;% spread(Sample, rpm)
+
+
+
+WriteTable(x = rpkmOut, file = &#39;output/rpkm.txt&#39;)
+WriteTable(x = tpmOut, file = &#39;output/tpm.txt&#39;)
+WriteTable(x = rpmOut, file = &#39;output/rpm.txt&#39;)
+
+
+
+countsData &lt;- data.frame(row.names = counts$ID, (counts %&gt;% select(-ID, -transcript_length)), check.names = FALSE)
+
+colData           &lt;- data.table::fread(&quot;./sample_info&quot;, sep = &quot;\t&quot;, data.table = FALSE, header = FALSE, col.names = c(&#39;condition&#39;, &#39;replicate&#39;))
+rownames(colData) &lt;- colData$replicate
+
+## remove samples
+
+colData &lt;- colData[-which(rownames(colData) %in% samplesRemove), ]
+
+countsDataOrdered &lt;- countsData[,rownames(colData)]
+
+## run deseq on anything (for the whole PCA plot)
+dds_all &lt;- DESeqDataSetFromMatrix(countData = countsDataOrdered,
+                                  colData = colData,
+                                  design = ~ condition)
+
+
+
+## run the rest of the analysis
+
+
+treatment.init &lt;- gsub(&quot; &quot;, &quot;&quot;, unlist(strsplit(treatment, split = &quot;, &quot;)))
+control.init   &lt;- gsub(&quot; &quot;, &quot;&quot;, unlist(strsplit(control, split = &quot;, &quot;)))
+
+    ## Create contrasts, if there are different numbers of treatment and control, throw an error
+if(length(treatment.init) == length(control.init)){
+    contrast &lt;- lapply(seq(1, length(treatment.init)), function(x){
+        c(treatment.init[x], control.init[x])})
+} else {
+    message(&quot;\nNumber of controls does not equal number of treatments.  Exiting program&quot;)
+}
+
+
+
+
+dds.res &lt;- lapply(contrast, function(x){
+    x1                 &lt;- x[1]
+    x2                 &lt;- x[2]
+    small.counts.data  &lt;- countsData[,c(grep(x1, colnames(countsData)), grep(x2, colnames(countsData)))]
+    small.col.data     &lt;- colData[c(grep(x1, rownames(colData)), grep(x2, rownames(colData))),]
+    print(x)
+    DESeqDataSetFromMatrix(countData = small.counts.data,
+                           colData = small.col.data,
+                           design = ~ condition)
+})
+    
+
+
+contrast_names &lt;- unlist(lapply(contrast, paste, collapse = &quot;/&quot;))
+names(dds.res) &lt;- contrast_names
+
+
+dds.res &lt;- lapply(contrast_names, function(x){
+    print(x)
+    dds &lt;- dds.res[[x]]
+    DESeq(dds)})
+
+names(dds.res) &lt;- contrast_names
+
+
+## Run DESEq and extract results
+
+all.results &lt;- mclapply(contrast_names, function(x){
+    print(x)
+    dds &lt;- dds.res[[x]]
+    l &lt;- strsplit(x, split = &quot;/&quot;)[[1]]
+    y &lt;- data.frame(results(dds, contrast=c(&quot;condition&quot;,l[1],l[2]), tidy = TRUE))[,c(&#39;row&#39;, &#39;baseMean&#39;, &#39;log2FoldChange&#39;, &#39;lfcSE&#39;, &#39;pvalue&#39;, &#39;padj&#39;)]
+    y_f &lt;- gather(y, key = dea_ID, value = dea_Value, -row) %&gt;% dplyr::rename(&#39;Gene&#39; = row)
+    y_f$contrastID &lt;- x
+    y_f
+})
+
+
+names(all.results) &lt;- contrast_names
+
+
+
+## Make a long and wide results DF
+
+all_results_tidyDF  &lt;- bind_rows(all.results)
+all_results_DF      &lt;- all_results_tidyDF %&gt;% unite(ID_all, contrastID, dea_ID) %&gt;% spread(key = ID_all, value = dea_Value)
+
+## write them out
+WriteTable(x = all_results_tidyDF, file = &#39;output/all_genes_expressionTidy.txt&#39;)
+
+## create a table of significant genes with the cluster colors assigned
+
+
+lfc_table &lt;- all_results_tidyDF %&gt;%
+  mutate(significant = ifelse(dea_ID == &#39;padj&#39; &amp; dea_Value &lt;= pval, yes = &#39;yes&#39;, no = &#39;no&#39;)) %&gt;% # label all significant genes
+  group_by(Gene) %&gt;% mutate(num_sigGroup = length(which(significant == &#39;yes&#39;))) %&gt;% # label the # of times genes that are significant
+  ungroup() %&gt;%
+  filter(num_sigGroup &gt; 0, dea_ID == &#39;log2FoldChange&#39;) %&gt;% # pull out the fold change for genes significant at least 1 time
+  select(-significant, -num_sigGroup) %&gt;% unite(colname, contrastID, dea_ID) %&gt;% # make the table wide formatted
+  spread(colname, dea_Value)
+
+
+sign.table &lt;- all_results_tidyDF  %&gt;% 
+  spread(key = dea_ID, value = dea_Value)  %&gt;% 
+  filter(Gene %in% lfc_table$Gene) %&gt;%
+  group_by(contrastID, Gene) %&gt;% 
+  mutate(sortby = -log(padj, base = c(10))*sign(log2FoldChange)) %&gt;% 
+  ungroup() %&gt;% gather(dea_ID, dea_Value, -Gene, -contrastID) %&gt;% 
+  unite(idAll, contrastID, dea_ID) %&gt;% spread(key = idAll, value = dea_Value) %&gt;%
+  dplyr::rename(&#39;TranscriptID&#39; = Gene)
+
+
+#Make a table that contains all of the genes in the results
+all.genes.table &lt;- all_results_DF %&gt;% dplyr::rename(&#39;TranscriptID&#39; = Gene)
+
+
+WriteTable(file = paste0(&quot;./output/significant_genes.txt&quot;), x = sign.table)    
+WriteTable(file = paste0(&quot;./output/all_genes_expression.txt&quot;), x = all.genes.table)
+
+
+## make PCA info
+
+rld     &lt;- rlogTransformation(dds_all, blind = TRUE)
+rld_all &lt;- mclapply(dds.res, rlogTransformation, blind = TRUE)
+
+
+
+
+## make heatmap inputs
+
+
+## fix the log Fold Change table so it can be clustered
+
+heatmap.input.table           &lt;- data.frame(lfc_table)
+rownames(heatmap.input.table) &lt;- lfc_table$Gene
+heatmap.input.table$Gene      &lt;- NULL
+heatmap.input.table           &lt;- na.omit(data.matrix(heatmap.input.table))
+colnames(heatmap.input.table) &lt;- contrast_names
+
+    
+## Save everything we have made to Rdata files
+
+save(file = &quot;workspace_images/counts.Rdata&quot;, list = c(&#39;counts&#39;, &#39;tidyCounts&#39;, &#39;normCounts&#39;))
+save(file = &quot;workspace_images/config.Rdata&quot;, list = c(&#39;title&#39;, &#39;workingdir&#39;, &#39;control&#39;, &#39;treatment&#39;, &#39;pval&#39;))
+save(file = &quot;workspace_images/DESeq2All.Rdata&quot;, list = c(&#39;title&#39;, &#39;workingdir&#39;, &#39;pval&#39;, &#39;tidyCounts&#39;,
+                                                         &#39;normCounts&#39;, &#39;countsData&#39;, &#39;contrast&#39;, &#39;dds_all&#39;,
+                                                         &#39;all_results_tidyDF&#39;, &#39;all_results_DF&#39;, &#39;contrast_names&#39;,
+                                                         &#39;dds.res&#39;, &#39;rld&#39;, &#39;rld_all&#39;, &#39;heatmap.input.table&#39;))</code></pre>
+</div>
+<div id="go-enrichment" class="section level4">
+<h4>GO Enrichment</h4>
+<pre class="r"><code>#!/usr/bin/env Rscript
+
+args&lt;-commandArgs(TRUE)
+if (length(args) == 0L || any(c(&#39;-h&#39;, &#39;--help&#39;) %in% args)) {
+    message(&#39;usage: path/to/input__GO_enrich.R input1 input2 input3
+    Runs GO term enrichment for a list of genes.
+    Output:  A table of enrichment, either &quot;all_go_enrichment.xls&quot;, or &quot;go_slim_enrichment.xls&quot;
+    Args:
+    input1            File with genes to be enriched, one gene per line.
+    input2            Either &quot;all_go&quot; or &quot;go_slim&quot;.
+    input3            Optional output prefix.
+    -h, --help        to print help messages&#39;)
+    q(&#39;no&#39;)
+}
+
+
+library(topGO)
+library(reshape)
+library(plyr)
+library(GO.db)
+library(dplyr)
+
+
+run.get.go.terms &lt;- function(index, list.terms){
+    # Runs get.*.GO but checks that it is runable. If the get.*.GO function is not runable, and error message is returned.
+    geneList             &lt;- factor(as.integer(GOterms$Gene %in% list.terms[[index]]))
+    names(geneList)      &lt;- GOterms$Gene
+    lev &lt;- levels(geneList)
+    if(length(lev) &lt; 2){
+        message(paste0(&quot;Pvalue too stringent for &quot;, dx[index, &quot;contrasts&quot;], &quot;. Choose a higher pvalue to yield results for this contrast.&quot;))
+    } else {
+        terms &lt;- get.GOterms(geneList[[index]], 10, c(&quot;MF&quot;, &quot;CC&quot;, &quot;BP&quot;))
+        invisible(terms)
+    }
+}
+
+get.bh &lt;- function(go.id, df){
+    # Returns the benjamini-hochberg correction so it can later be appended to the final GOterms.
+    #
+    # Args:
+    #   go.id: a go.id to find the benjamini-hochberg correction for.
+    #   df: the data.frame holding the bh correction values.
+    bh     &lt;- grep(go.id, rownames(df))
+    bh.val &lt;- df[bh, &quot;BH.correction&quot;]
+    invisible(bh.val)
+}
+
+
+create.file &lt;- function(enriched.terms, name){
+    # Creats a file holding the casted table.
+    #
+    # Args:
+    #   prefix: a string of what should be the file identifier.
+    #   casted.data: a resultant table from the function &quot;cast.table&quot;.
+    file.create(name)
+    zz   &lt;- file(name, &quot;w&quot;)
+    write.table(enriched.terms, file=zz, sep = &quot;\t&quot;, col.names=TRUE, row.names=FALSE, quote=FALSE)
+    close(zz)
+}
+
+
+Get.go.terms &lt;- function(GOterms, list.terms, ontol, xx){
+    # Runs the base line GO term analysis as provided through topGO.
+    ## contrast             &lt;- dx[index,&quot;contrasts&quot;]
+    #terms                &lt;- list.terms[[index]]
+    #genes                &lt;- table[terms, &quot;_id&quot;]
+    geneList             &lt;- factor(as.integer(GOterms$id %in% list.terms))
+    names(geneList)      &lt;- GOterms$id
+    #contrast &lt;- dx[index,&quot;contrasts&quot;]
+    #geneList &lt;- geneList[[index]]
+    GO                   &lt;- new(&quot;topGOdata&quot;, ontology=ontol, allGenes=geneList, annot = annFUN.gene2GO, gene2GO = readmap)
+    resultFisher         &lt;- runTest(GO, algorithm = &quot;classic&quot;, statistic = &quot;fisher&quot;)
+    pVal                 &lt;- data.frame(pval=signif(score(resultFisher), 6),BH.correction=seq(1, length(score(resultFisher))))
+    pVal                 &lt;- pVal[order(pVal$pval),]
+    pVal$BH.correction   &lt;- signif(p.adjust(pVal$pval, method=&quot;BH&quot;), 6)
+    pVal.sub             &lt;- pVal[pVal$BH.correction&lt;0.01,]
+    pVal.sub$go_id       &lt;- rownames(pVal.sub)
+    pVal.try &lt;- cbind(pVal.sub, Term=sapply(pVal.sub$go_id, FUN=function(n){Term(xx[[n]])}), Ontol=sapply(pVal.sub$go_id, FUN=function(n){Ontology(xx[[n]])}))
+    if (nrow(pVal.try) &gt;0){
+        df2                  &lt;- pVal.try[,c(&quot;go_id&quot;, &quot;Term&quot;, &quot;Ontol&quot;, &quot;pval&quot;, &quot;BH.correction&quot;)]
+        out &lt;- list(df2, GO, resultFisher)
+        invisible(out)
+} else {
+    message(&quot;No enrichment&quot;)
+}
+}
+
+retrieve.my.genes &lt;- function(final, readmap.inverse, terms){
+    ## retrieve the genes for the GO terms that are in the readmapping file
+    ## final: the final df to add the genes to.
+    ## readmap.inverse: the readmapping to find the genes in
+    ## terms: the list of GO terms
+    ids     &lt;- unlist(lapply(final$go_id, toString))
+    a.small &lt;- readmap.inverse[ids]
+    my.terms &lt;- lapply(a.small, function(x){
+        new.terms &lt;- na.omit(match(x, terms))
+        b         &lt;- terms[new.terms]
+        invisible(b)}
+                       )
+    invisible(my.terms)
+}
+
+lookup.zeros &lt;- function(off.gos, all.readmap){
+    ## lookup genes present in the analysis for the offspring terms
+    ##      off.gos: GO terms with zero  genes associated
+    ##      all.readmap: the map of transcripts to GO terms for the analysis
+    
+    resul &lt;- na.omit(lapply(off.gos, function(x){all.readmap[[x]]}))
+    names(resul) &lt;- names(off.gos)
+    invisible(resul)
+}
+
+
+get.parent.length &lt;- function(zeros.dx, Ontol){
+    ## return the  genes associated with a parent GO term
+    ##     zeros.dx: dataframe of the parent GO terms with zero values
+    ##     Ontol: One of either &quot;CC&quot;, &quot;MF&quot;, &quot;BP&quot;
+    require(GO.db)
+    require(dplyr)
+    if (nrow(zeros.dx) &lt; 1){
+        message(paste0(Ontol, &quot; has no zero gene length terms for this analysis&quot;))
+    } else {
+        if(Ontol == &quot;CC&quot;){## initialize ontology hierarchies
+            ontol.off &lt;- as.list(GOCCOFFSPRING)
+        }
+        if (Ontol == &quot;BP&quot;){
+            ontol.off &lt;- as.list(GOBPOFFSPRING)
+        }
+        if(Ontol == &quot;MF&quot;){
+            ontol.off &lt;- as.list(GOMFOFFSPRING)
+        }
+        ## lookup the offspring GO terms
+        ontol.zero.off   &lt;- unlist2(lapply(zeros.dx$go_id, function(x){ontol.off[x]}))
+        ## lookup  genes for the offspring terms
+        ontol.       &lt;- lookup.zeros(ontol.zero.off, readmap.inverse)
+        ## pull out unique names of the GO terms
+        ontol.names.uniq &lt;- unique(names(ontol.))
+        ## pull out the number of  genes associated with the parent GO terms
+        ontol.ids.genes        &lt;- lapply(ontol.names.uniq, function(x){unique(unlist(ontol.[grep(x, names(ontol.))]))})
+        ontol.ids.len          &lt;- unlist2(lapply(ontol.ids.genes, length))
+        Genes                  &lt;- unlist2(lapply(ontol.ids.genes, paste, collapse=&quot;, &quot;))
+        dff                    &lt;- data.frame(GO=ontol.names.uniq, Length=ontol.ids.len, Genes=Genes, stringsAsFactors=FALSE)
+        zeros.dx               &lt;- zeros.dx[order(zeros.dx$go_id), ]
+        dff                    &lt;- dff[order(dff$GO), ]
+        zeros.dx$Branch_Num_Genes     &lt;- dff$Length
+        zeros.dx$Branch_Genes         &lt;- dff$Genes
+        invisible(zeros.dx)
+    }
+}
+
+create.hierarchy &lt;- function(go.results, go.df, ontol, go.terms, out){
+    if (nrow(go.df) == 0){
+        message(paste0(&#39;Hierarchy for &#39;, ontol, &quot; cannot be assigned.&quot;))
+    } else {
+        ## creates ontology hierarchy 
+        pvals &lt;- go.df$BH.correction
+        names(pvals) &lt;- rownames(go.df)
+        if (length(pvals) &gt; 50){
+            numNodes &lt;- 50
+        } else {
+            numNodes &lt;- length(pvals)
+        }
+        pdf(file=paste0(out, &quot;/&quot;, go.terms, &quot;_&quot;, ontol, &quot;_hierarchy.pdf&quot;), width=10, height=10)
+        showSigOfNodes(go.results, pvals, firstSigNodes = numNodes, useInfo = &quot;all&quot;)
+        dev.off()
+    }
+}
+
+
+
+
+##args &lt;- c(&quot;genes.txt&quot;, &quot;all_go&quot;)
+if(length(args) == 3){
+    outfile &lt;- paste0(args[3], &quot;_&quot;, args[2], &quot;_enrichment.xls&quot;)
+} else {
+    outfile &lt;- paste0(args[2], &quot;_enrichment.xls&quot;)
+}
+
+
+if(args[2] == &quot;all_go&quot;){
+    GOterms &lt;- read.table(&quot;gene2go.txt&quot;, quote=&quot;&quot;, stringsAsFactors=FALSE, sep=&quot;\t&quot;, header=TRUE)
+    colnames(GOterms) &lt;- c(&quot;id&quot;, &quot;term&quot;)
+    readmap           &lt;- readMappings(&quot;gene2go.txt&quot;, sep = &quot;\t&quot;, IDsep = &quot;;&quot;)
+}
+
+
+
+terms &lt;- scan(args[1], &quot;character&quot;)
+
+
+
+## read in the entire gene2allGo annotation and only keep the terms that are present in the chosen significant genes.
+all.readmap &lt;- readMappings(&quot;gene2go.txt&quot;, sep = &quot;\t&quot;, IDsep = &quot;;&quot;)
+all.readmap &lt;- all.readmap[terms]
+readmap.inverse    &lt;- inverseList(all.readmap)
+
+
+## access the GO ontology hierarchy
+xx &lt;- as.list(GOTERM)
+
+
+## run the enrichment analysis
+bp &lt;- Get.go.terms(GOterms, terms, &quot;BP&quot;, xx)
+cc &lt;- Get.go.terms(GOterms, terms, &quot;CC&quot;, xx)
+mf &lt;- Get.go.terms(GOterms, terms, &quot;MF&quot;, xx)
+
+bp.df &lt;- bp[[1]]
+mf.df &lt;- mf[[1]]
+cc.df &lt;- cc[[1]]
+
+bp.go &lt;- bp[[2]]
+mf.go &lt;- mf[[2]]
+cc.go &lt;- cc[[2]]
+
+bp.fish &lt;- bp[[3]]
+mf.fish &lt;- mf[[3]]
+cc.fish &lt;- cc[[3]]
+
+
+## bring to together all of the enrichments
+final           &lt;- rbind(mf.df, cc.df, bp.df)
+rownames(final) &lt;- NULL
+
+
+## get the  genes associated with the enrichment and attach them to the enrichment data.frame
+my.genes        &lt;- retrieve.my.genes(final, readmap.inverse, terms)
+my.genes        &lt;- lapply(my.genes, unique)
+len.my.genes    &lt;- lapply(my.genes, length)
+my.genes        &lt;- lapply(my.genes, toString)
+final$Num_Genes &lt;- unlist(len.my.genes)
+final$Genes     &lt;- unlist(my.genes)
+
+
+
+all.my.genes        &lt;- readmap.inverse[final$go_id]
+all.my.genes        &lt;- lapply(all.my.genes, unique)
+len.all.my.genes    &lt;- lapply(all.my.genes, length)
+all.my.genes        &lt;- lapply(all.my.genes, toString)
+final$Num_Leaf_Genes &lt;- unlist(len.all.my.genes)
+final$Leaf_Genes     &lt;- unlist(all.my.genes)
+
+
+
+
+## first filter the final df of the zero values for parent genes to be added back later
+
+final.t                        &lt;- filter(final, Num_Genes != 0)
+final.t$Branch_Num_Genes     &lt;- NA
+final.t$Branch_Genes         &lt;- NA
+
+
+## next filter out any parent terms that have zero  Genes currently annotated
+zero &lt;- filter(final, Num_Genes == 0)
+
+
+
+
+## initialize ontologies for parent GO terms that are not annotated to  genes
+zero.cc &lt;- filter(zero, Ontol == &quot;CC&quot;)
+zero.bp &lt;- filter(zero, Ontol == &quot;BP&quot;)
+zero.mf &lt;- filter(zero, Ontol == &quot;MF&quot;)
+
+
+
+
+## find the number of  genes associated with the parent ID
+cc.final &lt;- get.parent.length(zero.cc, &quot;CC&quot;)
+bp.final &lt;- get.parent.length(zero.bp, &quot;BP&quot;)
+mf.final &lt;- get.parent.length(zero.mf, &quot;MF&quot;)
+
+
+
+
+## Bind together everything and write out the final table
+final.done &lt;- rbind(final.t, cc.final, bp.final, mf.final)
+
+
+if (nrow(final.done)&gt;0){
+    create.file(final.done, outfile)
+} else {
+    message(&quot;No enrichment&quot;)
+}
+
+
+## create.hierarchy(cc.go, cc.df, &quot;CC&quot;, args[2], out.dir)
+## create.hierarchy(mf.go, mf.df, &quot;MF&quot;, args[2], out.dir)
+## create.hierarchy(bp.go, bp.df, &quot;BP&quot;, args[2], out.dir)
+
+save.image(file = paste0(args[2], &quot;.Rdata&quot;))</code></pre>
+</div>
 </div>
 </div>
 <div id="references" class="section level1 unnumbered">

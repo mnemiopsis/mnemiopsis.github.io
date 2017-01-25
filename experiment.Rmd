@@ -69,9 +69,11 @@ samtools idxstats ${fastq}.bam | sort -o ${fasq}.idxstats /dev/stdin
 
 
 
-Counts for isoforms were summed to create a count per 'gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@Love2014]. 
+Counts for isoforms were summed to create a count per 'gene', which served as input to the R package DESeq2 for differential expression analysis and normalization of the read counts [@Love2014]. The following code block is a sample script for the RNA-seq analysis:
+
 
 For the differential expression analysis, all timepoints were compared against the eight hour time point (8 hpf). The following samples were omitted for failing quality control tests: 7hpf_2012_N1’, ‘7hpf_2013_17’, ‘2hpf_2012_N6’, ‘1hpf_2012_N7’, ‘6hpf_2012_N2’. Additionally, all timepoints were compared against the two hour time point (2 hpf) omitting the following samples for failing quality control tests: 7hpf_2012_N1’, ‘2hpf_2012_N6’. 
+
 
 All heatmaps were created using the R package pheatmap [@kolde2015pheatmap].
 
@@ -82,6 +84,19 @@ Gene Ontology terms [@2014; @Ashburner2000] were assigned to each *M. leidyi* ge
 Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession GSE93977.
 
 
+###Scripts {.tabset}
+
+#### DESeq2
+```{r, code = readLines('scripts/runDEseq.R'), eval = FALSE}
+
+```
+
+
+#### GO Enrichment
+
+```{r, code = readLines('scripts/input_mnemiopsis_GO_enrich.R'), eval = FALSE}
+
+```
 
 # References
 
