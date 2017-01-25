@@ -17,3 +17,8 @@ output: html_document
 [RPKM Table](output/rpkm.txt)
 
 ###Links to GEO/TSA
+
+[GEO](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE93977)
+
+
+[TSA](https://www.ncbi.nlm.nih.gov/Traces/wgs/?val=GFAT01)

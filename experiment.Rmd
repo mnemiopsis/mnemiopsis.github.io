@@ -30,10 +30,10 @@ Multiple biological replicates were collected for timepoints 1, 2, 3, 4, 5, 6, 7
 
 - Total RNA was harvested according to [this protocol](methods/ASA_Trizol-RNA-extraction-Mnemiopsis-V2.pdf)
 
-- mRNA was extracted from the total RNA in to parts: [part 1](methods/Dynabead-protocol-Mnemiopsis-partI.pdf) and [part2](methods/Dynabead-protocol-Mnemiopsis-partII.pdf)
+- mRNA was extracted from the total RNA in two parts: [part 1](methods/Dynabead-protocol-Mnemiopsis-partI.pdf) and [part2](methods/Dynabead-protocol-Mnemiopsis-partII.pdf)
 
 
-- Library prep method and sequencing info.
+- Library prep and sequencing was completed according to [this protocol](methods/LibraryPrepMethodandSequencing.pdf)
 
 
 - Transcriptome assembly was performed with [this protocol](transcriptome.html).
@@ -79,7 +79,7 @@ Gene Ontology terms [@2014; @Ashburner2000] were assigned to each *M. leidyi* ge
 
 
 ###GEO submission
-Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession [].
+Gene expression data has been deposited in the Gene Expression Omnibus (GEO) under the accession GSE93977.
 
 
 
