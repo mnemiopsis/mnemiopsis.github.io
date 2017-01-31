@@ -844,6 +844,6 @@ DT::datatable(dt)
 
 
 
-#[R-session information](`r paste0("http://bioinfo/", gsub("/home/", "~", getwd()), "/sessionInfo/StorySessionInfo.txt")`)
+#[R-session information](sessionInfo/StorySessionInfo.txt)
 
 

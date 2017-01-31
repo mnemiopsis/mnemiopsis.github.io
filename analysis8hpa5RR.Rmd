@@ -243,6 +243,6 @@ if(ncol(heatmap.input.table) > 2) {
 writeLines(capture.output(sessionInfo()), "sessionInfo/8hpa5RRSessionInfo.txt")
 ```
 
-#[R-session information](`r paste0("http://bioinfo/", gsub("/home/", "~", getwd()), "/sessionInfo/StorySessionInfo.txt")`)
+#[R-session information](sessionInfo/8hpa5RRSessionInfo.txt)
 
 
